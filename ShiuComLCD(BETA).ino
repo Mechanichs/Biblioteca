@@ -36,10 +36,11 @@ unsigned int  expoente               = 1;
 bool          ligarcooler            = false;
 int botoes[4];
 bool estadoBotao;
+bool estadoBotao2;
 void(* reset) (void)= 0;
 bool verificador;
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 //Função que define os componentes sinalizador,sirene e sensores como entrada ou saída
 
@@ -60,7 +61,7 @@ void setup()
   
   for(int i = 0; i < NUM_SENSORES; i++)
     flag_calibracao[i] = false;
-  lcd.begin(20,4);
+  lcd.begin(16,2);
   for(int i = 0; i < 4; i++)
     pinMode(botoes[i], INPUT);
 }
@@ -114,7 +115,7 @@ void loop()
 
 void menu()
 {
-  unsigned long time;
+  unsigned long tempo;
   
   lcd.clear();
   lcd.cursor();
@@ -126,74 +127,46 @@ void menu()
   lcd.setCursor(0, 0);
   lcd.print("Deseja alterar limia");
   lcd.setCursor(0, 1);
-  lcd.print("r ou sensibilidade");
+  lcd.print("r ou sensibilidade?");
   delay(3000);
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("Parar confirmar");
+  lcd.print("1- Limiar");
   lcd.setCursor(0, 1);
-  lcd.print("Aperte 1");
+  lcd.print("2- Sensibilidade");
   lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Limiar");
-  time=millis();
+  tempo=millis();
   do{
-  estadoBotao == digitalRead(botoes[0]);
-  if (estadoBotao == HIGH){
+    estadoBotao == digitalRead(botoes[0]);
+    estadoBotao2 == digitalRead(botoes[1]);
+    if (estadoBotao == HIGH){
       lcd.clear();
-      lcd.setCursor(0,0);
-      lcd.print("Todos os limiares?");
-      lcd.setCursor(0,1);
-      lcd.print("Aperte 1");
-      time = millis();
-  do {
-     estadoBotao == digitalRead(botoes[0]);
-     if (estadoBotao == HIGH){
-      estadoBotao = LOW;
-      verificador = true;
-      alterarlimiares(verificador);
-     }
-    } while (millis() - time < 3001);
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Algum limiares?");
-  lcd.setCursor(0,1);
-  lcd.print("Aperte o botao");
-  time = millis();
-  do {
-    estadoBotao == digitalRead(botoes[0]);
-    if (estadoBotao == HIGH) {
-      estadoBotao = LOW;
-      verificador = false;
-      alterarlimiares(verificador);
+      lcd.setCursor(0, 0);
+      lcd.print("limiar");
+      alterarlimiares();
     }
-  } while (millis() - time < 3001);
-  }
-  }while (millis() - time < 3001);
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Sensibilidade");
-  time=millis();
-  do {
-    estadoBotao == digitalRead(botoes[0]);
-    if (estadoBotao == HIGH) {
+    else if(estadoBotao2 == HIGH)
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Sensibilidade");
       ajusteSensibilidade();
     }
-  } while (millis() - time < 3001);
-  
+  }while (millis() - tempo < 3001);
 }
-void alterarlimiares(bool quantidade)
+
+void alterarlimiares()
 {
   int botaoParar=LOW;
   int escolherBotao;
   unsigned int alteradorDePotenciometro=0;
-  unsigned long time;
+  unsigned long tempo;
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Alterar limiar");
   lcd.setCursor(0,1);
   lcd.print("Com potenciometro");
-  delay (2500);
+  delay(2500);
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Para parar aperte");
@@ -202,69 +175,97 @@ void alterarlimiares(bool quantidade)
   delay(2500);
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("Valor atual");
+  lcd.print("Selecione o limiar");
   lcd.setCursor(0,1);
-  
-  while(botaoParar != HIGH){
-  if (quantidade)
-  {
-    for(int i = 0; i < NUM_SENSORES;i++)
-    limite_POT[i]+= alteradorDePotenciometro;
-    lcd.print(limite_POT[0]);
-  }
-  else {
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Selecione o limiar");
-    lcd.setCursor(0,1);
-    lcd.print("Que deseja mudar");
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Aperte o botao 3");
-    lcd.setCursor(0,1);
-    lcd.print("para confirmar");
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Limiar 1");
-    time = millis();
-    do {
-      escolherBotao = digitalRead(botoes[2]);
-     if (escolherBotao == HIGH)
-      limite_POT[0]+= alteradorDePotenciometro;
-
-    } while (millis() - time < 3001);
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Limiar 2");
-    time = millis();
-    do {
-      escolherBotao = digitalRead(botoes[2]);
-     if (escolherBotao == HIGH)
-      limite_POT[1]+= alteradorDePotenciometro;
-     
-    } while (millis() - time < 3001);
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Limiar 3");
-    time = millis();
-    do {
-      escolherBotao = digitalRead(botoes[2]);
-     if (escolherBotao == HIGH)
-      limite_POT[2]+= alteradorDePotenciometro;
-     
-    } while (millis() - time < 3001);
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Limiar 4");
-    time = millis();
-    do {
-      escolherBotao = digitalRead(botoes[2]);
-     if (escolherBotao == HIGH)
-      limite_POT[3]+= alteradorDePotenciometro;
-    } while (millis() - time < 3001);    
-  }
-  botaoParar = digitalRead(botoes[1]);
-  }
+  lcd.print("Que deseja mudar");
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Aperte o botao 1");
+  lcd.setCursor(0,1);
+  lcd.print("para o limiar 1");
+  tempo = millis();
+  do{
+    escolherBotao = digitalRead(botoes[0]);
+    if(escolherBotao == HIGH){
+      do{
+        lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Valor Atual ->");
+      alteradorDePotenciometro = map(analogRead(verificadores[0]),0,1023,1023,0);
+      limite_POT[0] = alteradorDePotenciometro;
+      lcd.setCursor(15, 0);
+      lcd.print(limite_POT[0]);
+      botaoParar = digitalRead(botoes[3]);
+      }while(botaoParar != HIGH);
+      break;
+    }
+  }while(millis() - tempo < 3001);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Aperte o botao 2");
+  lcd.setCursor(0,1);
+  lcd.print("Para o limiar 2");
+  tempo = millis();
+  do{
+    escolherBotao = digitalRead(botoes[0]);
+    if(escolherBotao == HIGH){
+      do{
+        lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Valor Atual ->");
+      alteradorDePotenciometro = map(analogRead(verificadores[1]),0,1023,1023,0);
+      limite_POT[1] = alteradorDePotenciometro;
+      lcd.setCursor(15, 0);
+      lcd.print(limite_POT[1]);
+      botaoParar = digitalRead(botoes[3]);
+      }while(botaoParar != HIGH);
+      break;
+    }
+  }while(millis() - tempo < 3001);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Aperte o botao 3");
+  lcd.setCursor(0,1);
+  lcd.print("Para o limiar 3");
+  tempo = millis();
+  do{
+    escolherBotao = digitalRead(botoes[0]);
+    if(escolherBotao == HIGH){
+      do{
+        lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Valor Atual ->");
+      alteradorDePotenciometro = map(analogRead(verificadores[2]),0,1023,1023,0);
+      limite_POT[2] = alteradorDePotenciometro;
+      lcd.setCursor(15, 0);
+      lcd.print(limite_POT[2]);
+      botaoParar = digitalRead(botoes[3]);
+      }while(botaoParar != HIGH);
+      break;
+    }
+  }while(millis() - tempo < 3001);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Aperte o botao 4");
+  lcd.setCursor(0,1);
+  lcd.print("Para o limiar 4");
+  tempo = millis();
+  do{
+    escolherBotao = digitalRead(botoes[0]);
+    if(escolherBotao == HIGH){
+      do{
+        lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Valor Atual ->");
+      alteradorDePotenciometro = map(analogRead(verificadores[3]),0,1023,1023,0);
+      limite_POT[3] = alteradorDePotenciometro;
+      lcd.setCursor(15, 0);
+      lcd.print(limite_POT[3]);
+      botaoParar = digitalRead(botoes[3]);
+      }while(botaoParar != HIGH);
+      break;
+    }
+  }while(millis() - tempo < 3001);
   menu();
 }
 
@@ -406,26 +407,78 @@ void ajusteSensibilidade(){                      //A função recebe uma porta a
     if(!flag_calibracao[i]){
       if(valor > LIMITE){                        //Testes da precisão
         if(valor <= 15){
-          Serial.print("Sensibilidade desregulada, girar potenciometro LEVEMENTE no sentido horario. O LIMITE EH: ");
-          Serial.println(limite_POT[i]);
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print(">");
+          lcd.setCursor(1,0);
+          lcd.print("\\/");
+          lcd.setCursor(1,1);
+          lcd.print("<");
+          lcd.setCursor(0,1)
+          lcd.print("/\\");
+          lcd.setCursor(3,0);
+          lcd.print("LEVEMENTE");
+          lcd.setCursor(3,1);
+          lcd.print("LIMITE: ");
+          lcd.print(11,1);
+          lcd.print(limite_POT[i]);
           imprime_verificador(i, leitura);
           delay(1000);
         }else{
-          Serial.print("Sensibilidade desregulada, girar potenciometro no sentido horario. O LIMITE EH: ");
-          Serial.println(limite_POT[i]);
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print(">");
+          lcd.setCursor(1,0);
+          lcd.print("\\/");
+          lcd.setCursor(1,1);
+          lcd.print("<");
+          lcd.setCursor(0,1)
+          lcd.print("/\\");
+          lcd.setCursor(3,0);
+          lcd.print("BASTANTE");
+          lcd.setCursor(3,1);
+          lcd.print("LIMITE: ");
+          lcd.print(11,1);
+          lcd.print(limite_POT[i]);
           imprime_verificador(i, leitura);
           delay(1000);
         }
       }
       else if(valor < -LIMITE){
         if(valor >= -15){
-          Serial.print("Sensibilidade desregulada, girar potenciometro LEVEMENTE no sentido anti-horario. O LIMITE EH: ");
-          Serial.println(limite_POT[i]);
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("<");
+          lcd.setCursor(1,0);
+          lcd.print("\\/");
+          lcd.setCursor(1,1);
+          lcd.print(">");
+          lcd.setCursor(0,1)
+          lcd.print("/\\");
+          lcd.setCursor(3,0);
+          lcd.print("LEVEMENTE");
+          lcd.setCursor(3,1);
+          lcd.print("O LIMITE EH: ");
+          lcd.print(11,1);
+          lcd.print(limite_POT[i]);
           imprime_verificador(i, leitura);
           delay(1000);
         }else{
-          Serial.print("Sensibilidade desregulada, girar potenciometro no sentido anti-horario. O LIMITE EH: ");
-          Serial.println(limite_POT[i]);
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("<");
+          lcd.setCursor(1,0);
+          lcd.print("\\/");
+          lcd.setCursor(1,1);
+          lcd.print(">");
+          lcd.setCursor(0,1)
+          lcd.print("/\\");
+          lcd.setCursor(3,0);
+          lcd.print("BASTANTE");
+          lcd.setCursor(3,1);
+          lcd.print("O LIMITE EH: ");
+          lcd.print(5,0);
+          lcd.print(limite_POT[i]);
           imprime_verificador(i, leitura);
           delay(1000);
         }
