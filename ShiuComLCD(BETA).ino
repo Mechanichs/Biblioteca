@@ -4,7 +4,7 @@
 #define DEBUG          1          // Ativar(1) ou desativar(0) a comunicação com o serial.
 #define ZERAR          1          // (1) zero o EEPROM (0) mantem o EEPROM com leituras anteriores
 #define DELAY          500        // Define o tempo para o delay de debug em milissegundos
-#define NUM_SENSORES   4          // Numero de sensores usados
+#define NUM_SENSORES   1          // Numero de sensores usados
 #define NUM_INTERACOES 700        // Numero de interções no filtro
 #define OVERFLOW       4000000000 // Over flow para o unsigned long
 #define OCIO           5          // Tempo minimo entre uma ativação e outra
@@ -23,7 +23,7 @@
 #define TOLERANCIA     1          // EM SEGUNDOS PELO AMOR DE DEUS!
 
 int           sensores[NUM_SENSORES] = {A2, A3, A5, A6}; // Sensores ligados às portas analógicas
-int           verificadores[NUM_SENSORES] = {A7, A4, A1, A0};  // Resposansaveis por gravar saida do potenciometro
+int           verificadores[NUM_SENSORES] = {A0, A4, A1, A0};  // Resposansaveis por gravar saida do potenciometro
 int           limite_POT[NUM_SENSORES] = {554, 554, 554, 554};  // Variável responsável por definir o limiar do potenciometro medido analogicamente em relação à sensibilidade do sensor
 bool          flag_calibracao[NUM_SENSORES];
 int           nivel                  = 0;    // Variável responsável pelo nível de ruído
@@ -34,13 +34,13 @@ unsigned long tc                     = 0;    // Variável responsável pelo temp
 int           deveAlertar            = 1;    // Variável atua como um binário (true/false)
 unsigned int  expoente               = 1;
 bool          ligarcooler            = false;
-int botoes[4];
+int botoes[] = {8, 9, 6, 7};
 bool estadoBotao;
 bool estadoBotao2;
 void(* reset) (void)= 0;
 bool verificador;
-
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+///LiquidCrystal lcd(<pino RS>, <pino enable>, <pino D4>, <pino D5>, <pino D6>, <pino D7>)
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2); //
 
 //Função que define os componentes sinalizador,sirene e sensores como entrada ou saída
 
@@ -414,7 +414,7 @@ void ajusteSensibilidade(){                      //A função recebe uma porta a
           lcd.print("\\/");
           lcd.setCursor(1,1);
           lcd.print("<");
-          lcd.setCursor(0,1)
+          lcd.setCursor(0,1);
           lcd.print("/\\");
           lcd.setCursor(3,0);
           lcd.print("LEVEMENTE");
@@ -432,7 +432,7 @@ void ajusteSensibilidade(){                      //A função recebe uma porta a
           lcd.print("\\/");
           lcd.setCursor(1,1);
           lcd.print("<");
-          lcd.setCursor(0,1)
+          lcd.setCursor(0,1);
           lcd.print("/\\");
           lcd.setCursor(3,0);
           lcd.print("BASTANTE");
@@ -453,7 +453,7 @@ void ajusteSensibilidade(){                      //A função recebe uma porta a
           lcd.print("\\/");
           lcd.setCursor(1,1);
           lcd.print(">");
-          lcd.setCursor(0,1)
+          lcd.setCursor(0,1);
           lcd.print("/\\");
           lcd.setCursor(3,0);
           lcd.print("LEVEMENTE");
@@ -471,7 +471,7 @@ void ajusteSensibilidade(){                      //A função recebe uma porta a
           lcd.print("\\/");
           lcd.setCursor(1,1);
           lcd.print(">");
-          lcd.setCursor(0,1)
+          lcd.setCursor(0,1);
           lcd.print("/\\");
           lcd.setCursor(3,0);
           lcd.print("BASTANTE");
