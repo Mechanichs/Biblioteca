@@ -22,9 +22,9 @@
 #define OFF            0
 #define TOLERANCIA     1          // EM SEGUNDOS PELO AMOR DE DEUS!
 
-int           sensores[NUM_SENSORES] = {A2, A3, A5, A6}; // Sensores ligados às portas analógicas
-int           verificadores[NUM_SENSORES] = {A0, A4, A1, A0};  // Resposansaveis por gravar saida do potenciometro
-int           limite_POT[NUM_SENSORES] = {554, 554, 554, 554};  // Variável responsável por definir o limiar do potenciometro medido analogicamente em relação à sensibilidade do sensor
+int           sensores[NUM_SENSORES] = {A2/*, A3, A5, A6*/}; // Sensores ligados às portas analógicas
+int           verificadores[NUM_SENSORES] = {A0/*, A4, A1, A0*/};  // Resposansaveis por gravar saida do potenciometro
+int           limite_POT[NUM_SENSORES] = {554/*, 554, 554, 554*/};  // Variável responsável por definir o limiar do potenciometro medido analogicamente em relação à sensibilidade do sensor
 bool          flag_calibracao[NUM_SENSORES];
 int           nivel                  = 0;    // Variável responsável pelo nível de ruído
 int           endereco               = 0;    // Endereço de memória que vai armazenar quantidade de vezes que a sirene acionou
@@ -401,89 +401,62 @@ void imprime_verificador(int y, int leitura)
 void ajusteSensibilidade(){                      //A função recebe uma porta analogica (de um potenciometro) como parametro, para realizar a calibração do sensor
   bool ajuste = false;                           //Flag para a calibração. Regulada - True; Desregulada - False;
   int leitura;                                   //Variavel de leitura analogica da porta
-  for(int i = 0; i < NUM_SENSORES; i++){         //Laço para calibrar todos os sensores listados;
-    leitura = read_sensor(verificadores[i]);
-    int valor = leitura - limite_POT[i];         //Variavel de analise da precisão da calibração
-    if(!flag_calibracao[i]){
-      if(valor > LIMITE){                        //Testes da precisão
-        if(valor <= 15){
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print(">");
-          lcd.setCursor(1,0);
-          lcd.print("\\/");
-          lcd.setCursor(1,1);
-          lcd.print("<");
-          lcd.setCursor(0,1);
-          lcd.print("/\\");
-          lcd.setCursor(3,0);
-          lcd.print("LEVEMENTE");
-          lcd.setCursor(3,1);
-          lcd.print("LIMITE: ");
-          lcd.print(11,1);
-          lcd.print(limite_POT[i]);
-          imprime_verificador(i, leitura);
-          delay(1000);
-        }else{
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print(">");
-          lcd.setCursor(1,0);
-          lcd.print("\\/");
-          lcd.setCursor(1,1);
-          lcd.print("<");
-          lcd.setCursor(0,1);
-          lcd.print("/\\");
-          lcd.setCursor(3,0);
-          lcd.print("BASTANTE");
-          lcd.setCursor(3,1);
-          lcd.print("LIMITE: ");
-          lcd.print(11,1);
-          lcd.print(limite_POT[i]);
-          imprime_verificador(i, leitura);
-          delay(1000);
-        }
-      }
-      else if(valor < -LIMITE){
-        if(valor >= -15){
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("<");
-          lcd.setCursor(1,0);
-          lcd.print("\\/");
-          lcd.setCursor(1,1);
-          lcd.print(">");
-          lcd.setCursor(0,1);
-          lcd.print("/\\");
-          lcd.setCursor(3,0);
-          lcd.print("LEVEMENTE");
-          lcd.setCursor(3,1);
-          lcd.print("O LIMITE EH: ");
-          lcd.print(11,1);
-          lcd.print(limite_POT[i]);
-          imprime_verificador(i, leitura);
-          delay(1000);
-        }else{
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("<");
-          lcd.setCursor(1,0);
-          lcd.print("\\/");
-          lcd.setCursor(1,1);
-          lcd.print(">");
-          lcd.setCursor(0,1);
-          lcd.print("/\\");
-          lcd.setCursor(3,0);
-          lcd.print("BASTANTE");
-          lcd.setCursor(3,1);
-          lcd.print("O LIMITE EH: ");
-          lcd.print(5,0);
-          lcd.print(limite_POT[i]);
-          imprime_verificador(i, leitura);
-          delay(1000);
-        }
-      }else
-        flag_calibracao[i] = true;
-    }
+
+  String str = "Sensores";
+  String sensor;
+  for(int i=0; i<NUM_SENSORES; i++){
+    if(flag_calibracao[i] == false)
+      sensor += " " + String(i+1);
   }
+
+  if(sensor == ""){
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(str + " Calibrados");
+    delay(2000);
+  }else{
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(str + sensor);
+    delay(4000);
+  }
+  
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("digite o numero");
+  lcd.setCursor(0,1);
+  lcd.print("do botao");
+
+  int botao;
+
+  do{
+    for(int i=0; i<NUM_SENSORES; i++){
+      estadoBotao = digitalRead(botoes[i]);
+      if(estadoBotao == HIGH){
+        botao = i;
+        break;
+      }
+      break;
+    }
+  }while(estadoBotao != HIGH);
+
+  
+  do{         //Laço para calibrar todos os sensores listados;
+    leitura = read_sensor(verificadores[botao]);
+    int valor = leitura - limite_POT[botao];         //Variavel de analise da precisão da calibração
+    if(!flag_calibracao[botao]){
+      if(valor != limite_POT[botao]){
+        lcd.setCursor(0,0);
+        lcd.print("limite: " + limite_POT[botao]);
+        lcd.setCursor(0,1);
+        lcd.print("pot.: " + verificadores[botao]);
+      }else
+        lcd.setCursor(0,0);
+        lcd.print("limite: " + limite_POT[botao]);
+        lcd.setCursor(0,1);
+        lcd.print("pot.: " + verificadores[botao]);
+    }
+  }while(!flag_calibracao[botao]);
 }
+ 
