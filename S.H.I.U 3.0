@@ -1,1 +1,46 @@
+#include <EEPROM.h>
+#include <LiquidCrystal.h>
 
+#define LIMITE           6          // Define o limite de erro do sinal do potenciometro
+#define DEBUG            1          // Ativar(1) ou desativar(0) a comunicação com o serial.
+#define ZERAR            1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores
+#define DELAY            500        // Define o tempo para o delay de debug em milissegundos
+#define NUM_SENSOR       1          // Numero de sensores usados
+#define NUM_INTERACAO    700        // Numero de interções no filtro linear
+#define NUM_BOTAO        3          // Numero de botões ativos
+#define NUM_DADO         4          // Define o numero do slot de dados da memoria EEPROM
+#define OVERFLOW         4000000000 // Over flow para o unsigned long 
+#define SIRENE           6          // Sinalizador luminoso ligado à porta digital do arduino
+#define NIVEL_LIMITE     180        // Determina nível de ruído/pulsos para ativar a sirene.
+#define TEMPO_SIRENE     3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
+#define REP_SIRENE       2          // Quantidade de vezes que a sirene irá disparar  
+#define ON               1
+#define OFF              0
+#define slot_Acionamento 0
+
+bool  flag_calibracao [NUM_SENSOR];
+
+short  slot_limite[NUM_DADOS]           = {1, 2, 3, 4}; // Responsável  por guardar memória no EEPROM
+short  botao[NUM_BOTAO]                 = {8, 6, 7, 9}; // Portas dos botoes
+short  sensor[NUM_SENSOR]               = {A1};         // Sensores ligados às portas analógicas
+short  verificador[NUM_SENSOR]          = {A7};         // Resposansaveis por gravar saida do potenciometro
+short  limite_potenciometro[NUM_SENSOR] = {EEPROM.get(slot_limite[0], valor)/*, EEPROM.get(slot_limite[1], valor), EEPROM.get(slot_limite[2], valor),EEPROM.get(slot_limite[3], valor)*/};  // Variável responsável por definir o limiar do potenciometro medido analogicamente em relação à sensibilidade do sensor
+
+int   nivel                  = 0;    // Variável responsável pelo nível de ruído
+int   endereco               = 0;    // Endereço de memória que vai armazenar quantidade de vezes que a sirene acionou
+int   Q_Acionamento          = 0;    // Variável responsável pornivel armazenar quantidade de vezes que a sirene acionou
+
+unsigned long t0  = 0;    // Variável responsável pelo tempo inicial
+unsigned long tc  = 0;    // Variável responsável pelo tempo calculado
+
+LiquidCrystal lcd(5, 4, 3, 2, 1, 0);   //LiquidCrystal lcd(<pino RS>, <pino enable>, <pino D4>, <pino D5>, <pino D6>, <pino D7>)
+
+void(* reset) (void) = 0;  //Função responsável por reiniciar a programação pelo código.
+
+void setup()
+{
+
+}
+
+void loop()
+{}
