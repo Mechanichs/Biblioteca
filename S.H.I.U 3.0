@@ -5,15 +5,16 @@
 #define DEBUG            1          // Ativar(1) ou desativar(0) a comunicação com o serial.
 #define ZERAR            1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores
 #define DELAY            500        // Define o tempo para o delay de debug em milissegundos
+#define TAMANHO_VETOR    30         // Aproximadamente 10 interações por segundo
 #define NUM_SENSOR       1          // Numero de sensores usados
 #define NUM_INTERACAO    700        // Numero de interções no filtro linear
 #define NUM_BOTAO        3          // Numero de botões ativos
 #define NUM_DADO         4          // Define o numero do slot de dados da memoria EEPROM
+#define NUM_REPETICAO    2          // Quantidade de vezes que a sirene irá disparar  
 #define OVERFLOW         4000000000 // Over flow para o unsigned long 
 #define SIRENE           6          // Sinalizador luminoso ligado à porta digital do arduino
 #define NIVEL_LIMITE     180        // Determina nível de ruído/pulsos para ativar a sirene.
 #define TEMPO_SIRENE     3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
-#define REP_SIRENE       2          // Quantidade de vezes que a sirene irá disparar  
 #define ON               1
 #define OFF              0
 #define slot_Acionamento 0
@@ -22,11 +23,13 @@ bool  flag_calibracao [NUM_SENSOR];
 
 short  slot_limite[NUM_DADOS]           = {1, 2, 3, 4}; // Responsável  por guardar memória no EEPROM
 short  botao[NUM_BOTAO]                 = {8, 6, 7, 9}; // Portas dos botoes
-short  sensor[NUM_SENSOR]               = {A1};         // Sensores ligados às portas analógicas
-short  verificador[NUM_SENSOR]          = {A7};         // Resposansaveis por gravar saida do potenciometro
+short  sensor_porta[NUM_SENSOR]         = {A1};         // Sensores ligados às portas analógicas
+short  sensor_sinal[NUM_SENSOR]         = {}
+short  potenciometro_porta[NUM_SENSOR]  = {A7};         // Resposansaveis por gravar saida do potenciometro
+short  potenciometro_sinal[NUM_SENSOR]  = {};           // Resposansaveis por gravar saida do potenciometro
 short  limite_potenciometro[NUM_SENSOR] = {EEPROM.get(slot_limite[0], valor)/*, EEPROM.get(slot_limite[1], valor), EEPROM.get(slot_limite[2], valor),EEPROM.get(slot_limite[3], valor)*/};  // Variável responsável por definir o limiar do potenciometro medido analogicamente em relação à sensibilidade do sensor
 
-int   nivel                  = 0;    // Variável responsável pelo nível de ruído
+int   vetor[TAMANHO_VETOR]   = {};    // Variável responsável pelo nível de ruído
 int   endereco               = 0;    // Endereço de memória que vai armazenar quantidade de vezes que a sirene acionou
 int   Q_Acionamento          = 0;    // Variável responsável pornivel armazenar quantidade de vezes que a sirene acionou
 
@@ -39,8 +42,59 @@ void(* reset) (void) = 0;  //Função responsável por reiniciar a programação
 
 void setup()
 {
-
+  zerar_EEPROM();
+  if (DEBUG) Serial.begin(9600);
+  lcd.begin(16, 2);
+  
+  pinMode(SIRENE, OUTPUT);
+  
+  for (int i = 0; i < NUM_SENSORES; i++)
+    pinMode(sensor[i], INPUT);
+    
+  for (int i = 0; i < NUM_BOTOES; i++)
+    pinMode(botoes[i], INPUT);
 }
 
 void loop()
 {}
+
+void distribuir_vetor()
+{
+   
+}
+
+void sirene()
+{
+  for(int i = 0; i < NUM_REPETICAO ; i++)
+  {
+    digitalWrite(SIRENE, HIGH);
+    delay(DELAY);
+    digitalWrite(SIRENE, LOW);
+    delay(DELAY);  
+  }
+}
+
+int filtro_linear(int porta)
+{
+  int soma = 0;
+  
+  for(int i = 0; i< NUM_INTERACAO ; i++)
+    soma += analogRead(porta);
+    
+  return soma/NUM_INTERACAO;
+}
+
+void zerar_EEPROM() // Função responsável por zerar o EEPROM caso necessário
+{
+  if (ZERAR)
+    EEPROM.write(slot_Acionamentos, 0);
+  else
+    EEPROM.write(slot_Acionamentos, EEPROM.read(slot_Acionamento));
+}
+
+void zerar_vetor()
+{
+  for(int i = 0; i< NUM_SENSOR; i++)
+    vetor[i] = 0;
+}
+
