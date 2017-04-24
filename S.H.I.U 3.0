@@ -5,6 +5,7 @@
 #define DEBUG            1          // Ativar(1) ou desativar(0) a comunicação com o serial.
 #define ZERAR            1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores
 #define DELAY            500        // Define o tempo para o delay de debug em milissegundos
+#define DELAY_INICIAL    2000       // Define o tempo para o delay quando o sistema é ligado na energia
 #define TAMANHO_VETOR    30         // Aproximadamente 10 interações por segundo
 #define NUM_SENSOR       1          // Numero de sensores usados
 #define NUM_INTERACAO    700        // Numero de interções no filtro linear
@@ -29,7 +30,8 @@ short  potenciometro_porta[NUM_SENSOR]  = {A7};         // Resposansaveis por gr
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Resposansaveis por gravar saida do potenciometro
 short  limite_potenciometro[NUM_SENSOR] = {EEPROM.get(slot_limite[0], valor)/*, EEPROM.get(slot_limite[1], valor), EEPROM.get(slot_limite[2], valor),EEPROM.get(slot_limite[3], valor)*/};  // Variável responsável por definir o limiar do potenciometro medido analogicamente em relação à sensibilidade do sensor
 
-int   vetor[TAMANHO_VETOR]   = {};    // Variável responsável pelo nível de ruído
+int   vetor[TAMANHO_VETOR]   = {};   // Variável responsável pelo nível de ruído
+int   media_vetor            = 0;    // Valor medio do vetor de valores
 int   endereco               = 0;    // Endereço de memória que vai armazenar quantidade de vezes que a sirene acionou
 int   Q_Acionamento          = 0;    // Variável responsável pornivel armazenar quantidade de vezes que a sirene acionou
 
@@ -42,9 +44,10 @@ void(* reset) (void) = 0;  //Função responsável por reiniciar a programação
 
 void setup()
 {
+  delay(DELAY_INICIAL);
   zerar_EEPROM();
   if (DEBUG) Serial.begin(9600);
-  lcd.begin(16, 2);
+  lcd.begin(16, 2); 
   
   pinMode(SIRENE, OUTPUT);
   
@@ -53,6 +56,7 @@ void setup()
     
   for (int i = 0; i < NUM_BOTAO; i++)
     pinMode(botao[i], INPUT);
+  
   lcd.clear();
 }
 
@@ -60,21 +64,36 @@ void loop()
 {
   ler_sensor();
   distribuir_vetor();
-  
+  menu_iniciar();
 }
 
 void menu_iniciar()
 {
-  int j = 0;
-  for(int i = 0; i < NUM_SENSOR; i++)
-  {
-    lcd.setCursor(0, j); // 0,4,8,12
-    lcd.print(sinal_sensor[i]);
-    j += 4;
-  }
+  lcd.clear();
   
-  lcd.setCursor(1, 0);
-  lcd.print("2-CONFIGURACAO");
+  if(analisar_barulho());
+  {
+    lcd.setCursor(0, 0);
+    lcd.print("SIRENE");
+    lcd.setCursor(1, 0);
+    lcd.print("LIM");
+    lcd.print(valor_limite);
+    lcd.print("VAL")
+    lcd.print(media_vetor);
+    sirene();
+  }
+  else
+  {
+    int j = 0;
+    for(int i = 0; i < NUM_SENSOR; i++)
+    {
+      lcd.setCursor(0, j); // 0,4,8,12
+      lcd.print(sinal_sensor[i]);
+      j += 4;
+    }
+    lcd.setCursor(1, 0);
+    lcd.print("2-CONFIGURACAO");
+  }
 }
 
 void ler_sensor()
@@ -100,11 +119,16 @@ void distribuir_vetor()
 bool analisar_barulho();
 {
   int soma = 0;
+  
   for(int i = 0; i < TAMANHO_VETOR; i++)
-  {
     soma + = vetor[i];
-  }
-  return soma/TAMANHO_VETOR;
+  
+  media_vetor = soma/TAMANHO_VETOR 
+  
+  if( media_vetor >= NIVEL_LIMITE )
+    return true;
+  else
+    return false;
 }
 
 int media_sala()
