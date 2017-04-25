@@ -25,15 +25,15 @@ bool  flag_calibracao [NUM_SENSOR];
 short  slot_limite[NUM_DADOS]           = {1, 2, 3, 4}; // Responsável  por guardar memória no EEPROM
 short  botao[NUM_BOTAO]                 = {8, 6, 7, 9}; // Portas dos botoes
 short  sensor_porta[NUM_SENSOR]         = {A1};         // Sensores ligados às portas analógicas
-short  sensor_sinal[NUM_SENSOR]         = {}
-short  potenciometro_porta[NUM_SENSOR]  = {A7};         // Resposansaveis por gravar saida do potenciometro
-short  potenciometro_sinal[NUM_SENSOR]  = {};           // Resposansaveis por gravar saida do potenciometro
+short  sensor_sinal[NUM_SENSOR]         = {}            // Responsáveis por gravar saida do sensor
+short  potenciometro_porta[NUM_SENSOR]  = {A7};         // Responsáveis por gravar saida do potenciometro
+short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 short  limite_potenciometro[NUM_SENSOR] = {EEPROM.get(slot_limite[0], valor)/*, EEPROM.get(slot_limite[1], valor), EEPROM.get(slot_limite[2], valor),EEPROM.get(slot_limite[3], valor)*/};  // Variável responsável por definir o limiar do potenciometro medido analogicamente em relação à sensibilidade do sensor
 
-int   vetor[TAMANHO_VETOR]   = {};   // Variável responsável pelo nível de ruído
+int   vetor[TAMANHO_VETOR]   = {};   // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_vetor            = 0;    // Valor medio do vetor de valores
 int   endereco               = 0;    // Endereço de memória que vai armazenar quantidade de vezes que a sirene acionou
-int   Q_Acionamento          = 0;    // Variável responsável pornivel armazenar quantidade de vezes que a sirene acionou
+int   Q_Acionamento          = 0;    // Variável responsável por nivel armazenar quantidade de vezes que a sirene acionou
 
 unsigned long t0  = 0;    // Variável responsável pelo tempo inicial
 unsigned long tc  = 0;    // Variável responsável pelo tempo calculado
@@ -64,6 +64,7 @@ void loop()
 {
   ler_sensor();
   distribuir_vetor();
+  analisar_regulagem();
   menu_iniciar();
 }
 
@@ -93,6 +94,14 @@ void menu_iniciar()
     }
     lcd.setCursor(1, 0);
     lcd.print("2-CONFIGURACAO");
+  }
+}
+
+char analisar_regulagem()
+{
+  for(int i = 0; i<NUM_SENSOR; i++)
+  if( sinal_potenciometro[i] + limite > )
+  {
   }
 }
 
