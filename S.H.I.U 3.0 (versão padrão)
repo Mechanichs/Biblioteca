@@ -1,0 +1,187 @@
+#include <EEPROM.h>
+#include <LiquidCrystal.h>
+
+#define LIMITE            6          // Define o limite de erro do sinal do potenciometro
+#define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.
+#define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores
+#define DELAY_SIRENE      500        // Define o tempo para o delay de debug em milissegundos
+#define DELAY_BOTAO       200        // Define o tempo de espera para o delay do erro humano em relação aos botões
+#define DELAY_AVISO       1000       // Define o tempo de espera para o usuario ler uma menssagem de aviso no display
+#define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando
+#define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia
+#define TAMANHO_VETOR     300        // Aproximadamente 10 interações por segundo
+#define NUMERO_SENSOR     2          // Numero de sensores usados
+#define NUMERO_INTERACAO  700        // Numero de interções no filtro linear
+#define NUMERO_REPETICAO  2          // Quantidade de vezes que a sirene irá disparar  
+#define OVERFLOW          4000000000 // Over flow para o unsigned long 
+#define SIRENE            6          // Sinalizador luminoso ligado à porta digital do arduino
+#define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene.
+#define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
+
+short  sensor_porta[NUMERO_SENSOR]         = {A0,A1};         // Sensores ligados às portas analógicas
+short  potenciometro_porta[NUMERO_SENSOR]  = {A5,A4};         // Responsáveis por gravar saida do potenciometro
+
+int   sensor_sinal[NUMERO_SENSOR]          = {};            // Responsáveis por gravar saida do sensor
+int   potenciometro_sinal[NUMERO_SENSOR]   = {};           // Potenciometros ligados às portas analógicas
+int   vetor[TAMANHO_VETOR]                 = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
+int   potenciometro_ideal   			   = 60;    // Valor ideal do potenciometro
+
+unsigned long   media_vetor                          =  0;    // Valor medio do vetor de valores
+
+LiquidCrystal lcd(5, 4, 3, 2, 1, 0);   //LiquidCrystal lcd(<pino RS>, <pino enable>, <pino D4>, <pino D5>, <pino D6>, <pino D7>)
+
+void(* reset) (void) = 0;  //Função responsável por reiniciar a programação pelo código.
+
+void setup()
+{
+
+  //if (DEBUG) Serial.begin(9600);
+  lcd.begin(16, 2);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("INICIANDO");
+  delay(DELAY_INICIAL);
+  
+  pinMode(SIRENE, OUTPUT);
+  
+  for (int i = 0; i < NUMERO_SENSOR; i++)
+  {
+    pinMode(sensor_porta[i], INPUT);
+    pinMode(potenciometro_porta[i], INPUT);
+  }    
+  
+}
+
+void loop()
+{
+  ler_sensor();
+  distribuir_vetor();
+  if(analisar_barulho())
+    sirene();
+  else
+    menu_iniciar();
+}
+
+void menu_iniciar()
+{
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    for(int i = 0; i < NUMERO_SENSOR; i++)
+    {
+       lcd.print(sensor_sinal[i]);
+       lcd.setCursor(i+4, 0);
+    }
+    lcd.setCursor(0, 1);
+  	for(int i = 0; i < NUMERO_SENSOR; i++)
+    {
+       lcd.print(potenciometro_sinal[i]);
+       lcd.setCursor(i+4, 1);
+    }
+  	if(NUMERO_SENSOR <= 2)
+    {
+      	lcd.setCursor(8, 0);
+  		lcd.print("MED:");
+      	lcd.setCursor(12, 0);
+        lcd.print(media_vetor);
+    	lcd.setCursor(8, 1);
+      	lcd.print("POT:");
+      	lcd.setCursor(12, 1);
+        lcd.print(potenciometro_ideal);
+    }
+    delay(DELAY_DISPLAY);
+}
+
+int filtro_linear(int porta) //Lê uma porta e retorna o seu sinal filtrado
+{
+  unsigned long soma = 0;
+  
+  for(int i = 0; i< NUMERO_INTERACAO ; i++)
+    soma += analogRead(porta);
+    
+  return soma/NUMERO_INTERACAO;
+}
+
+void ler_sensor()
+{
+  for(int i = 0; i < NUMERO_SENSOR; i++)
+  {
+    sensor_sinal[i] = filtro_linear(sensor_porta[i]);
+    potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);
+  }
+}
+
+void distribuir_vetor()
+{
+   for(int i = 0; i < TAMANHO_VETOR; i++)
+   {
+      if(i == 0)
+        vetor[i] = media_sala();
+      else
+        vetor[i] = vetor[i-1];
+   }
+}
+
+bool analisar_barulho()
+{
+  unsigned long soma = 0;
+  
+  for(int i = 0; i < TAMANHO_VETOR; i++)
+    soma += vetor[i];
+  
+  media_vetor = soma/TAMANHO_VETOR; 
+  
+  if( media_vetor >= NIVEL_LIMITE )
+    return true;
+  else
+    return false;
+}
+
+int media_sala()
+{
+  int soma = 0;
+  for(int i = 0; i < NUMERO_SENSOR; i++)
+  {
+    soma += sensor_sinal[i];
+  }
+  return soma/NUMERO_SENSOR;
+}
+
+int maximo_sala()
+{
+  int maior = sensor_sinal[0];
+  
+  for(int i = 0; i < NUMERO_SENSOR ; i++)
+  {
+    if( maior > sensor_sinal[i] )
+      maior = sensor_sinal[i];
+  }
+  return maior;
+}
+
+void sirene()
+{
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("SIRENE");
+    lcd.setCursor(0, 1);
+    lcd.print("LIM ");
+    lcd.print(NIVEL_LIMITE);
+    lcd.setCursor(8, 1);    
+    lcd.print("MED");
+    lcd.print(media_vetor);
+    
+    for(int i = 0; i < NUMERO_REPETICAO ; i++)
+    {
+      digitalWrite(SIRENE, HIGH);
+      delay(DELAY_SIRENE);
+      digitalWrite(SIRENE, LOW);
+      delay(DELAY_SIRENE);  
+    }
+    zerar_vetor();
+}
+
+void zerar_vetor()
+{
+  for(int i = 0; i< NUMERO_SENSOR; i++)
+    vetor[i] = 0;
+}
