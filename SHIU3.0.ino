@@ -297,7 +297,7 @@ int ler_escolha()
   {
     for(int i=0; i< NUM_SENSOR; i++)
     {
-      if(ler_botao[i])
+      if(ler_botao(botao[i]))
         return i;
     }
   }
