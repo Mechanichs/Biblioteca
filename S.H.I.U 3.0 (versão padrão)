@@ -1,100 +1,117 @@
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
-#define LIMITE            6          // Define o limite de erro do sinal do potenciometro
-#define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.
-#define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores
-#define DELAY_SIRENE      500        // Define o tempo para o delay de debug em milissegundos
-#define DELAY_BOTAO       200        // Define o tempo de espera para o delay do erro humano em relação aos botões
-#define DELAY_AVISO       1000       // Define o tempo de espera para o usuario ler uma menssagem de aviso no display
-#define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando
-#define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia
-#define TAMANHO_VETOR     30         // Aproximadamente 10 interações por segundo
-#define NUMERO_SENSOR     1          // Numero de sensores usados
-#define NUMERO_INTERACAO  700        // Numero de interções no filtro linear
-#define NUMERO_REPETICAO  2          // Quantidade de vezes que a sirene irá disparar  
-#define OVERFLOW          4000000000 // Over flow para o unsigned long 
-#define SIRENE            6          // Sinalizador luminoso ligado à porta digital do arduino
-#define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene.
+#define LIMITE            6          // Define o limite de erro do sinal do potenciometro.
+#define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+#define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
+#define DELAY_SIRENE      500        // Define o tempo para o delay de debug em milissegundos.
+#define DELAY_BOTAO       200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
+#define DELAY_AVISO       1000       // Define o tempo de espera para o usuario ler uma menssagem de aviso no display.    *FALTA
+#define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando.
+#define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia.
+#define TAMANHO_VETOR     30         // Aproximadamente 10 interações por segundo.
+#define NUM_SENSOR        1          // Numero de sensores usados. ~ (SENSOR SONORO)
+#define NUM_INTERACAO     700        // Numero de interções no filtro linear.
+#define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
+#define OVERFLOW          4000000000 // Over flow para o unsigned long.
+#define SIRENE            6          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
+#define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 
-short  sensor_porta[NUMERO_SENSOR]         = {A1};         // Sensores ligados às portas analógicas
-short  sensor_sinal[NUMERO_SENSOR]         = {};            // Responsáveis por gravar saida do sensor
-short  potenciometro_porta[NUMERO_SENSOR]  = {A7};         // Responsáveis por gravar saida do potenciometro
-short  potenciometro_sinal[NUMERO_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
+short  sensor_porta[NUM_SENSOR]         = {A1};         // Sensores ligados às portas analógicas
+short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
+short  potenciometro_porta[NUM_SENSOR]  = {A7};         // Responsáveis por gravar saida do potenciometro
+short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
-int   vetor[TAMANHO_VETOR]                 = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
-int   media_vetor                          =  0;    // Valor medio do vetor de valores
-int   potenciometro_ideal[NUMERO_SENSOR]   = {};    // Valor ideal do potenciometro
+int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
+int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
+int   potenciometro_ideal[NUM_SENSOR]   = {};    // Valor ideal do potenciometro
+int   tempo                             = 0;
+int   key                               = 1;
 
-LiquidCrystal lcd(5, 4, 3, 2, 1, 0);   //LiquidCrystal lcd(<pino RS>, <pino enable>, <pino D4>, <pino D5>, <pino D6>, <pino D7>)
+LiquidCrystal lcd(5, 4, 3, 2, 1, 0); //LiquidCrystal lcd(<pino RS>, <pino enable>, <pino D4>, <pino D5>, <pino D6>, <pino D7>)
 
-void(* reset) (void) = 0;  //Função responsável por reiniciar a programação pelo código.
+void(*reset)(void) = 0; //Função responsável por reiniciar a programação pelo código.
 
 void setup()
 {
-  delay(DELAY_INICIAL);
-  if (DEBUG) Serial.begin(9600);
+  delay(DELAY_INICIAL); // sistema é ligado na energia
+  
+  if(DEBUG) 
+    Serial.begin(9600);
+  
+  /* LCD checked */
+  lcd.clear();  // é sempre bom para começar... 
   lcd.begin(16, 2);
   
+  /* pinMode's */
   pinMode(SIRENE, OUTPUT);
-  
-  for (int i = 0; i < NUMERO_SENSOR; i++)
+  for(int i = 0; i < NUM_SENSOR; i++)
   {
     pinMode(sensor_porta[i], INPUT);
     pinMode(potenciometro_porta[i], INPUT);
-  }
-      
-  lcd.clear();
+  } 
 }
 
 void loop()
 {
+  /* Primeiro passo */
   ler_sensor();
-  distribuir_vetor();
+  /* Segundo passo */
+  distribuir_vetor(); // filtro -> distribuir valores
+  /* Terceiro passo */
   if(analisar_barulho())
-    sirene();
-  else
-    menu_iniciar();
+    sirene(); // alarme -> zerar vetor -> delay
+  else // caso não o sirene...
+    menu_iniciar(); // volta para o incicio (o display mostrando os valores atuais - recebido pelos sensores)
 }
-
-void menu_iniciar()
+/* ----- Pós void setup & loop ----- */
+void menu_iniciar() // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
 {
-    lcd.clear();
+    lcd.clear(); // importante
     lcd.setCursor(0, 0);
-    for(int i = 0; i < NUMERO_SENSOR; i++)
+    
+    for(int i = 0; i < NUM_SENSOR; i++)
     {
-       lcd.print(sensor_sinal[i]);
-       lcd.setCursor(0, i+4);
+       lcd.print(sensor_sinal[i]); // sinal = porta
+       lcd.setCursor(0, i+4); // posicionamento primeira linha
     }
-    for(int i = 0; i < NUMERO_SENSOR; i++)
+    for(int i = 0; i < NUM_SENSOR; i++)
     {
-       lcd.print(potenciometro_sinal[i]);
-       lcd.setCursor(1, i+4);
+       lcd.print(potenciometro_sinal[i]); // sinal = porta
+       lcd.setCursor(1, i+4); // posicionamento segunda linha 
     }
-    delay(DELAY_DISPLAY);
+    delay(DELAY_DISPLAY); // evita que a tela fique piscando
 }
-
-void ler_sensor()
+/* ----- Começando aqui após o INÍCIO ----- */
+void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
 {
-  for(int i = 0; i < NUMERO_SENSOR; i++)
+  for(int i = 0; i < NUM_SENSOR; i++)
   {
-    sensor_sinal[i] = filtro_linear(sensor_porta[i]);
+    sensor_sinal[i] = filtro_linear(sensor_porta[i]); // filtro!
     potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);
   }
 }
 
-int filtro_linear(int porta) //Lê uma porta e retorna o seu sinal filtrado
+int filtro_linear(int porta) // lê uma porta e retorna o seu sinal filtrado
 {
   unsigned long soma = 0;
-  
-  for(int i = 0; i< NUMERO_INTERACAO ; i++)
+  for(int i = 0; i< NUM_INTERACAO ; i++)
     soma += analogRead(porta);
     
-  return soma/NUMERO_INTERACAO;
+  return soma/NUM_INTERACAO;
 }
 
-void distribuir_vetor()
+int media_sala() // media sala(no momento)
+{
+  unsigned long soma = 0;
+  for(int i = 0; i < NUM_SENSOR; i++)
+    soma += sensor_sinal[i];
+    
+  return soma/NUM_SENSOR;
+}
+
+void distribuir_vetor() // preencher o vetor com cada endereço a media_sala daquele respectivo momento, e sempre atualizando a cada nova interação
 {
    for(int i = 0; i < TAMANHO_VETOR; i++)
    {
@@ -105,47 +122,38 @@ void distribuir_vetor()
    }
 }
 
-bool analisar_barulho()
+bool analisar_barulho() // decide se vai acionar ou nao...
 {
   unsigned long soma = 0;
-  
   for(int i = 0; i < TAMANHO_VETOR; i++)
     soma += vetor[i];
   
-  media_vetor = soma/TAMANHO_VETOR; 
+  media_total = soma/TAMANHO_VETOR; // (somatorio do vetor)/TAMANHO
   
-  if( media_vetor >= NIVEL_LIMITE )
-    return true;
+  if(!key)
+    tempo = millis();
+  
+  if(media_total >= NIVEL_LIMITE)
+  {
+    while(!((millis() - tempo)/1000) <= 4)) // questão do ruido
+    {  
+      tempo = 0;
+      key = 0;
+      return true;
+    }
+  }
   else
-    return false;
-}
-
-int media_sala()
-{
-  unsigned long soma = 0;
-  for(int i = 0; i < NUMERO_SENSOR; i++)
   {
-    soma += sensor_sinal[i];
+      key = 1;
+      return false;
   }
-  return soma/NUMERO_SENSOR;
-}
-
-int maximo_sala()
-{
-  int maior = sensor_sinal[0];
-  
-  for(int i = 0; i < NUMERO_SENSOR ; i++)
-  {
-    if( maior > sensor_sinal[i] )
-      maior = sensor_sinal[i];
-  }
-  return maior;
 }
 
 void sirene()
 {
     lcd.clear();
     lcd.setCursor(0, 0);
+    /* Display informando */
     lcd.print("SIRENE");
     lcd.setCursor(1, 0);
     lcd.print("LIM");
@@ -153,19 +161,36 @@ void sirene()
     lcd.setCursor(1, 8);    
     lcd.print("VAL");
     lcd.print(media_vetor);
-    
-    for(int i = 0; i < NUMERO_REPETICAO ; i++)
+    /* AVISO */
+    for(int i = 0; i < NUM_REPETICAO ; i++) // barulho da sirene
     {
       digitalWrite(SIRENE, HIGH);
       delay(DELAY_SIRENE);
       digitalWrite(SIRENE, LOW);
       delay(DELAY_SIRENE);  
     }
+    
     zerar_vetor();
 }
 
-void zerar_vetor()
+void zerar_vetor() // uma vez passado o limite, zerar o vetor com as medidas da sala e começar a preencher novamente
 {
-  for(int i = 0; i< NUMERO_SENSOR; i++)
+  for(int i = 0; i< NUM_SENSOR; i++)
     vetor[i] = 0;
 }
+
+/* 
+ *  pode ser útil no futuro
+ *  
+int maximo_sala()
+{
+  int maior = sensor_sinal[0];
+  
+  for(int i = 0; i < NUM_SENSOR ; i++)
+  {
+    if( maior > sensor_sinal[i] )
+      maior = sensor_sinal[i];
+  }
+  return maior;
+} 
+*/
