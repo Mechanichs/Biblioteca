@@ -56,6 +56,8 @@ void setup()
 {
   delay(DELAY_INICIAL); // sistema é ligado na energia
 
+  clear.contador();
+
   if(DEBUG) 
     Serial.begin(9600);
 
@@ -289,7 +291,7 @@ void clear.contador(void)
 
 void clear.eeprom(void)
 {
-  for(int i=0; i<EEPROM.length; i++)
+  for(int i=0; i<EEPROM.length(); i++)
     EEPROM.write(i,0);
 }
 
