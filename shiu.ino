@@ -233,14 +233,15 @@ void ordenamento_bolha(int num[])   //metodo de ordenamento decrescente de bolha
 
 bool analisar_barulho() // decide se vai acionar ou nao...      
 {
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
   media_total = media_vetor();  //simplificado com a criacao da funcao media vetor
   Serial.print("media vetor: ");
   Serial.println(media_vetor());
 
-  if(media_total >= NIVEL_LIMITE)
-  {
+  if(media_total >= ep.tolerancia)
     return true;
-  }
 
   return false;
 
@@ -307,7 +308,7 @@ void conf_padrao(void)
   clear_contador();
 
   ep.contador=0;
-  ep.tolerancia = 180;
+  ep.tolerancia = NIVEL_LIMITE;
   EEPROM.put(0, ep);
 }
 
