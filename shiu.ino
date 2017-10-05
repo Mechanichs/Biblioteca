@@ -1,16 +1,3 @@
-/**
-####   EPROM   ####
-## Enderecos X Conteudo ##
-0 - Contador de ativacoes da Sirene (Ainda nao adicionado)
-_ - Vazio
-_ - Vazio
-_ - Vazio
-.
-.
-.
-
- */
-
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
@@ -33,6 +20,12 @@ _ - Vazio
 #define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor(). 
+
+/*
+####   EPROM   ####
+## Enderecos X Conteudo ##
+0 - Struct com os dados as variaveis utilizadas no eeprom
+*/
 
 typedef struct st_eeprom{
   int contador;
