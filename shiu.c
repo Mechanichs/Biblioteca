@@ -34,14 +34,16 @@ _ - Vazio
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor(). 
 
+typedef struct st_eeprom{
+  int contador;
+  int tolerancia;
+}t_eeprom;
+
 short  sensor_porta[NUM_SENSOR]         = {A0};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
 short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
-int end_contador = 0;
-int end_telorancia = end_contador + sizeof(int);
-int end_taltal = end_tolerancia + sizeof(int);
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
 int   potenciometro_ideal[NUM_SENSOR]   = {};    // Valor ideal do potenciometro
@@ -60,10 +62,7 @@ void setup()
   delay(DELAY_INICIAL); // sistema é ligado na energia
 
   if(ZERAR)
-  {
     clear_eeprom();
-    clear_contador();
-  }
 
   if(DEBUG) 
     Serial.begin(9600);
@@ -284,48 +283,52 @@ void zerar_vetor() // uma vez passado o limite, zerar o vetor com as medidas da 
 
 void adicionar_contador(void)
 {
-  int i;
+  t_eeprom ep;
 
-  EEPROM.get(0, i);
-  i = i + 1;
+  EEPROM.get(0, ep);
+  ep.contador = ep.contador + 1;
   EEPROM.put(0, i);
 }
 
 void clear_contador(void)
 {
-  EEPROM.put(0, (int)0);
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+  ep.contador=0;
+  EEPROM.put(0, ep);
 }
 
 void clear_eeprom(void)
 {
   for(int i=0; i<EEPROM.length(); i++)
     EEPROM.write(i,0);
+ 
+  conf_padrao();
 }
 
 void conf_padrao(void)
 {
-  int i=0;
+  t_eeprom ep;
 
   clear_contador();
 
-  i = 0 + sizeof(int);
-
-  EEPROM.put(i, (int)NIVEL_LIMITE);
-
+  ep.contador=0;
+  ep.tolerancia = 180;
+  EEPROM.put(0, ep);
 }
 
 void mod_tolerancia(char c) //modificar_tolerancia
 {
-  int i=0, j=0;
+  t_eeprom ep;
 
-  i = 0 + sizeof(int);
-  EEPROM.get(i, j);
+  EEPROM.get(0, ep);
 
   if(c=='+')
-    j = j + 1;
+    ep.tolerancia = ep.tolerancia + 1;
   else if(c=='-')
-    j = j - 1;
+    ep.tolerancia = ep.tolerancia - 1;
 
-  EEPROM.put(i, j);
+  EEPROM.put(i, ep);
 }
 
