@@ -56,7 +56,11 @@ void setup()
 {
   delay(DELAY_INICIAL); // sistema é ligado na energia
 
-  clear.contador();
+  if(ZERAR)
+  {
+    clear_eeprom();
+    clear_contador();
+  }
 
   if(DEBUG) 
     Serial.begin(9600);
@@ -264,7 +268,7 @@ void sirene()
   lcd.print("Histerese Sirene");
 
   zerar_vetor();
-  adicionar.contador();
+  adicionar_contador();
 
   delay(DELAY_HISTERESE*1000);
 }
@@ -275,7 +279,7 @@ void zerar_vetor() // uma vez passado o limite, zerar o vetor com as medidas da 
     vetor[i] = 0;
 }
 
-void adicionar.contador(void)
+void adicionar_contador(void)
 {
   int i;
 
@@ -284,12 +288,12 @@ void adicionar.contador(void)
   EEPROM.put(0, i);
 }
 
-void clear.contador(void)
+void clear_contador(void)
 {
   EEPROM.put(0, (int)0);
 }
 
-void clear.eeprom(void)
+void clear_eeprom(void)
 {
   for(int i=0; i<EEPROM.length(); i++)
     EEPROM.write(i,0);
