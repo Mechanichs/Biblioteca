@@ -39,6 +39,9 @@ short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gra
 short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
+int end_contador = 0;
+int end_telorancia = end_contador + sizeof(int);
+int end_taltal = end_tolerancia + sizeof(int);
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
 int   potenciometro_ideal[NUM_SENSOR]   = {};    // Valor ideal do potenciometro
@@ -297,5 +300,32 @@ void clear_eeprom(void)
 {
   for(int i=0; i<EEPROM.length(); i++)
     EEPROM.write(i,0);
+}
+
+void conf_padrao(void)
+{
+  int i=0;
+
+  clear_contador();
+
+  i = 0 + sizeof(int);
+
+  EEPROM.put(i, (int)NIVEL_LIMITE);
+
+}
+
+void mod_tolerancia(char c) //modificar_tolerancia
+{
+  int i=0, j=0;
+
+  i = 0 + sizeof(int);
+  EEPROM.get(i, j);
+
+  if(c=='+')
+    j = j + 1;
+  else if(c=='-')
+    j = j - 1;
+
+  EEPROM.put(i, j);
 }
 
