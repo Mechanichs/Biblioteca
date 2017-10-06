@@ -290,7 +290,7 @@ void adicionar_contador(void)
 
   EEPROM.get(0, ep);
   ep.contador = ep.contador + 1;
-  EEPROM.put(0, i);
+  EEPROM.put(0, ep);
 }
 
 void clear_contador(void)
@@ -314,8 +314,6 @@ void conf_padrao(void)
 {
   t_eeprom ep;
 
-  clear_contador();
-
   ep.contador=0;
   ep.tolerancia = NIVEL_LIMITE;
   EEPROM.put(0, ep);
@@ -332,6 +330,6 @@ void mod_tolerancia(char c) //modificar_tolerancia
   else if(c=='-')
     ep.tolerancia = ep.tolerancia - 1;
 
-  EEPROM.put(i, ep);
+  EEPROM.put(0, ep);
 }
 
