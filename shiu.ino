@@ -62,10 +62,12 @@ void setup()
 
   /* pinMode's */
   pinMode(SIRENE, OUTPUT);
-  //sensor_porta[0] = A0;
-  //potenciometro_porta = A1;
-  pinMode(sensor_porta[0], INPUT);
-  pinMode(potenciometro_porta[0], INPUT);
+
+  for(int i=0, i<NUM_SENSOR; i++)
+  {
+    pinMode(sensor_porta[i], INPUT);
+    pinMode(potenciometro_porta[i], INPUT);
+  }
 
   lcd.begin(16, 2);
 
