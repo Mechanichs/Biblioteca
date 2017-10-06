@@ -74,6 +74,9 @@ void setup()
 
 void loop()
 {
+  if(DEBUG)     //Debug usado para descobrir o tempo de utilizacao de processamento do programa
+    time1 = millis();
+
   /* Primeiro passo */
   ler_sensor();
   /* Segundo passo */
@@ -85,6 +88,14 @@ void loop()
   //else // caso não o sirene...
   menu_iniciar(); // volta para o incicio (o display mostrando os valores atuais - recebido pelos sensores)
   delay(DELAY_MEDICAO);//tempo entre cada medicao
+  
+  if(DEBUG)
+  {
+    resp1 = millis() - time1;
+    Serial.print("> Temp Loop: ");
+    Serial.println(resp1);
+    //lcd.print(resp1);
+  }
 }
 /* ----- Pós void setup & loop ----- */
 void menu_iniciar() // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
@@ -126,10 +137,8 @@ void menu_iniciar() // função que lança no display o que o sensor esta captan
 void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
 {
   if(DEBUG)     //Debugs usados para descobrir o tempo de utilizacao de processamento da funcao tanto por cada sensor(time2,resp2) como por todos o conjunto(time1, resp1)
-  {
-
     time1 = millis();
-  }
+
   for(int i = 0; i < NUM_SENSOR; i++)
   {
     if(DEBUG)
