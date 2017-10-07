@@ -82,9 +82,9 @@ void ler_sensor()
     potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);
 }
 
+//============================================== checar
 void checar()
 {
-      
   switch(check())
   {
     case change:
@@ -92,22 +92,31 @@ void checar()
       loop();
       break;
     case up:
-      lcd.clear();
-      if(state < = 1 )
+      lcd.clear()// Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().;
+      if(state <= 1 )// se ele der  up na primeira ele vai pra ultima
         state = 5;
       else
-        state--; // Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().
+        state--;
       break;
     case down:
-      if(state >=5 )
+      lcd.clear()// Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().;
+      if(state >=5 )//se ele chegar na ultima volta pra primeira
         state = 1;
       else
-        state++; // Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().
+        state++
       break;
-   // default: // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-   }
-   
-   set_state(state);
+    case menu:// os enters devem ser adicionados aqui 
+      lcd.clear();
+      /*set_state(6);
+        lcd.print("         ");*/
+      set_state(state);
+      if(state == 5)
+        state=6;
+      break;
+
+  }
+
+  set_state(state);
 
 
 }
@@ -115,159 +124,44 @@ void checar()
 //============================================== POOP
 void poop()
 {
-  switch(state) // Define checa qual tela atual
-  {
-    case 1:     
-      checar();
 
-     /* switch(check())
-      {
-        case change:
-          delay(500);
-          loop();
-          break;
-        case up:
-          lcd.clear();
-          set_state(5); // Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().
-          break;
-        case down:
-          lcd.clear();
-          set_state(2);
-          break;
-        default: // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-          set_state(1);
-      }*/
+  if(state > 0 && state < 6)
+    checar();
+  else if(state == 6)
+    switch(check())
+    {
+      if(setor == 1)
+        setor = 0;
+      case menu:
+
+      potenciometro_ideal[setor]++;
+      set_state(6);
       break;
-    case 2:          // executado quando na TELA 2
-      checar();
-      /*switch(check())
-      {
-        case change:
-          delay(500);
-          loop();
-          break;
-        case up:
-          lcd.clear();
-          set_state(1);
-          break;
-        case down:
-          lcd.clear();
-          set_state(3);
-          break;
-        default:
-          set_state(2); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-      }*/
+      case change:
+      potenciometro_ideal[setor]--;
+      set_state(6);
       break;
-      
-    case 3: // executado quando na TELA 3
-      checar();
-     /* 
-      switch(check())
-      {
-        case change:
-          delay(500);
-          loop();
-          break;
-        case up:
-          lcd.clear();
-          set_state(2);
-          break;
-        case down:
-          lcd.clear();
-          set_state(4);
-          break;
-        default:
-          set_state(3); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-      }*/
+      case down:
+      if(setor > 3)
+        setor = 0;
+      else
+        setor++;
+      set_state(6); // Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().
+      break;
+      case up:
+      if(setor < 0)
+        setor = 3;
+      else
+        setor--;
+      set_state(6);
       break;
 
-    case 4: // executado quando na TELA 4
-      checar();
-      /*switch(check())
-      {
-        case menu:
-          lcd.clear();
-          limite_acionar = mudar(limite_acionar);
-          break;
-        case change:
-          lcd.clear();
-          limite_acionar = mudar(limite_acionar);
-          break;
-        case up:
-          lcd.clear();
-          set_state(3);
-          break;
-        case down:
-          lcd.clear();
-          set_state(5);
-          break;
-        default:
-          set_state(4); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-      }*/
-      break;
-    case 5  :          // executado quando na TELA 5
-      checar();
-      /*switch(check())
-      {
-        case change:
-          delay(500);
-          loop();
-          break;
-        case up:
-          lcd.clear();
-          set_state(4);
-          break;
-        case down:
-          lcd.clear();
-          set_state(1);
-          break;
-        case menu:
-          lcd.clear();
-          set_state(6);
-          lcd.print("         ");
-          state=6;
-          break;
-        default:
-          set_state(5); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-      }*/
-      break;
-    case 6  :
-      switch(check())
-      {
-        if(setor == 1) 
-          setor = 0;
-        case menu:
-          
-          potenciometro_ideal[setor]++;
-          set_state(6);
-        break;
-        case change:
-          potenciometro_ideal[setor]--;
-          set_state(6);
-        break;
-        case down:
-          if(setor > 3)
-            setor = 0;
-          else
-            setor++;
-          set_state(6); // Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().
-        break;
-        case up:
-          if(setor < 0)
-            setor = 3;
-          else
-            setor--;
-          set_state(6);
-        break;
-        
-        default: // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-          set_state(6);
-      }
-      break;
-  }
+    }        
+
+  set_state(state);
+
+
 }
-
-
 
 //============================================== set_state
 void set_state(char index) 
