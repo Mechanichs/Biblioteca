@@ -82,153 +82,6 @@ void ler_sensor()
     potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);
 }
 
-//============================================== POOP
-
-/*void poop()
-  {
-  switch(state) // Define checa qual tela atual
-  {  
-  case 1:          // executado quando na TELA 1
-  switch(check()) 
-  {
-  case change:
-  delay(500);
-  loop();
-  break;
-  case up:
-  lcd.clear();
-  set_state(5); // Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().
-  break;
-  case down:
-  lcd.clear();
-  set_state(2);
-  break;
-  default: // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-  set_state(1);
-  }
-  break;
-  case 2:          // executado quando na TELA 2
-  switch(check())
-  {
-  case change:
-  delay(500);
-  loop();
-  break;
-  case up:
-  lcd.clear();
-  set_state(1);
-  break;
-  case down:
-  lcd.clear();
-  set_state(3);
-  break;
-  default:
-  set_state(2); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-  }
-  break;
-  case 3: // executado quando na TELA 3
-  switch(check()) 
-  {
-  case change:
-  delay(500);
-  loop();
-  break;
-  case up:
-  lcd.clear(); 
-  set_state(2);
-  break;
-  case down:
-  lcd.clear(); 
-  set_state(4);
-  break;
-  default:
-  set_state(3); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-  }
-  break;
-  case 4:          // executado quando na TELA 4
-  switch(check())
-  {
-  case menu:
-  lcd.clear(); 
-  limite_acionar = mudar(limite_acionar);
-  break;
-  case change:
-  lcd.clear(); 
-  limite_acionar = mudar(limite_acionar);
-break;
-case up:
-lcd.clear(); 
-set_state(3);
-break;
-case down:
-lcd.clear(); 
-set_state(5);
-break;
-default:
-set_state(4); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-}
-break;
-case 5  :          // executado quando na TELA 5
-switch(check())
-{
-  case change:
-    delay(500);
-    loop();
-    break;
-  case up:
-    lcd.clear(); 
-    set_state(4);
-    break;
-  case down:
-    lcd.clear(); 
-    set_state(1);
-    break;
-  case menu:
-    lcd.clear();
-    set_state(6);
-    lcd.print("         ");
-    while(state == 6) // Define checa qual tela atual
-    {
-      switch(check()) 
-      {   
-        if(setor == 1) setor = 0;
-        case menu:
-        potenciometro_ideal[setor]++;
-        set_state(6);  
-        break; 
-        case change:
-        potenciometro_ideal[setor]--;
-        set_state(6);
-        break;                
-        case down:
-        if(setor > 3)
-          setor = 0;
-        else 
-          setor++;
-        set_state(6); // Antes de mudar de tela, é necessário limpar o display com a função lcd.clear().
-        break;
-        case up:
-        if(setor < 0)
-          setor = 3;
-        else 
-          setor--;
-        set_state(6);
-        break;
-        default: // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-        set_state(6);
-      }
-      //set_state(5);
-      //break;
-    }
-    break;
-    switch(check()) 
-      break;
-    //default:
-    //set_state(5); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-}
-break;  
-} 
-}*/
 void checar()
 {
       
@@ -303,12 +156,12 @@ void poop()
           break;
         default:
           set_state(2); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
-      }
+      }*/
       break;
-      */
-     /* 
+      
     case 3: // executado quando na TELA 3
       checar();
+     /* 
       switch(check())
       {
         case change:
@@ -377,6 +230,7 @@ void poop()
         default:
           set_state(5); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
       }*/
+      break;
     case 6  :
       switch(check())
       {
