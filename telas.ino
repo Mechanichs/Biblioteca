@@ -336,6 +336,8 @@ void poop()
           lcd.print("         ");
           state=6;
           break;
+        default:
+          set_state(5); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
       }
     case 6  :
       switch(check())
@@ -366,8 +368,6 @@ void poop()
         default: // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
         set_state(6);
       }
-      //default:
-      //set_state(5); // Caso nenhum botão tenha sido apertado, ela executa a set_state mesmo assim para atualizar o display.
       break;
   }
 }
