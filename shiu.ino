@@ -138,54 +138,18 @@ void menu_iniciar() // função que lança no display o que o sensor esta captan
 /* ----- Começando aqui após o INÍCIO ----- */
 void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
 {
-  if(DEBUG)     //Debugs usados para descobrir o tempo de utilizacao de processamento da funcao tanto por cada sensor(time2,resp2) como por todos o conjunto(time1, resp1)
-    time1 = millis();
+  unsigned long soma[NUM_SENSOR];
+  int i, j;
+  
+  for(i = 0; i< NUM_SENSOR ; i++)
+    soma[i] = 0;
 
-  for(int i = 0; i < NUM_SENSOR; i++)
-  {
-    if(DEBUG)
-      time2 = millis();
-    sensor_sinal[i] = filtro_linear(sensor_porta[i]); // filtro!
-    potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);    //segundo verifiquei, o potenciometro so esta no codigo para ser impresso
-    Serial.print("sensor: ");
-    Serial.println(sensor_sinal[i]);
-    if(DEBUG)                                                       //os dados do potenciometro nao tem nenhuma ligacao com o processamento
-    {
-      resp2 = millis() - time2;
-      Serial.print("- T sensor ");
-      Serial.print(i);
-      Serial.print(": ");
-      Serial.print(resp2);
-      //lcd.print(resp2);
-    }
-  }
-  if(DEBUG)
-  {
-    resp1 = millis() - time1;
-    Serial.print("> T total: ");
-    Serial.println(resp1);
-    //lcd.print(resp1);
-  }
-}
+  for(i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
+    for(i = 0; i< NUM_SENSOR ; i++)
+      soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
 
-/* Funcao ler_sensor sem debugs
-
-   void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
-   {
-   for(int i = 0; i < NUM_SENSOR; i++)
-   {
-   sensor_sinal[i] = filtro_linear(sensor_porta[i]); // filtro!
-   potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);    //segundo verifiquei, o potenciometro so esta no codigo para ser impresso
-   }
-   }
-
- */
-
-int filtro_linear(int porta) // lê uma porta e retorna o seu sinal filtrado
-{
-  unsigned long soma = 0;                   //filtro significa uma media aritimetica de NUM_INTERACAO(no momento, 700) medidas
-  for(int i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
-    soma += analogRead(porta);              //ou seja, ele e a "propria leitura do sensor"
+  for(i = 0; i< NUM_INTERACAO ; i++)
+    sensor_sinal[i] = soma[i]/NUM_INTERACAO;
 
   return soma/NUM_INTERACAO;
 }
