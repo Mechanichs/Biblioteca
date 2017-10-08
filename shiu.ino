@@ -32,8 +32,8 @@ typedef struct st_eeprom{
   int tolerancia;
 }t_eeprom;
 
-bool   chave_sensor[NUM_SENSOR]         
-bool  status_sensor[NUM_SENSOR]         
+bool   sensor_chave[NUM_SENSOR]         
+bool  sensor_status[NUM_SENSOR]         
 short  sensor_porta[NUM_SENSOR]         = {A0};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
 short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
@@ -67,8 +67,8 @@ void setup()
 
   for(int i=0, i<NUM_SENSOR; i++)
   {
-    chave_sensor[i]=true;
-    status_sensor[i]=true;
+    sensor_chave[i]=true;
+    sensor_status[i]=true;
     pinMode(sensor_porta[i], INPUT);
     pinMode(potenciometro_porta[i], INPUT);
   }
@@ -164,8 +164,8 @@ int media_sala(void) // media sala(no momento). Ele permite retornar uma media a
   unsigned long soma = 0;
 
   for(int i = 0; i < NUM_SENSOR; i++)
-    if(chave_sensor[i])
-      if(status_sensor[i])
+    if(sensor_chave[i])
+      if(sensor_status[i])
       {
         soma += sensor_sinal[i];
         j++;
@@ -318,8 +318,11 @@ void verificar_intervalo(void)
   int i;
 
   for(i=0; i<NUM_SENSOR; i++)
-    if(sensor_sinal[i]<20 || sensor_sinal[i]>950)
-      status_sensor[i] = false;
+    if(sensor_chave[i])
+      if(sensor_sinal[i]<20 || sensor_sinal[i]>950)
+        sensor_status[i] = false;
+      else
+        sensor_status[i] = true;
 
   return;
 }
