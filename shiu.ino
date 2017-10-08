@@ -104,7 +104,7 @@ void loop()
   }
 }
 /* ----- Pós void setup & loop ----- */
-void menu_iniciar() // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
+void menu_iniciar(void) // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
 {
   lcd.clear(); // importante
   lcd.setCursor(0, 0);
@@ -140,7 +140,7 @@ void menu_iniciar() // função que lança no display o que o sensor esta captan
   delay(DELAY_DISPLAY); // evita que a tela fique piscando
 }
 /* ----- Começando aqui após o INÍCIO ----- */
-void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
+void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
 {
   unsigned long soma[NUM_SENSOR];
   int i, j;
@@ -175,7 +175,7 @@ int media_sala(void) // media sala(no momento). Ele permite retornar uma media a
   return soma/j;
 }
 
-int media_vetor() // media sala(no momento). Retorna uma media aritimetica das medidas recolhidas durante cerca de 9 segundos(ainda precisa averiguar esse tempo)
+int media_vetor(void) // media sala(no momento). Retorna uma media aritimetica das medidas recolhidas durante cerca de 9 segundos(ainda precisa averiguar esse tempo)
 {
   unsigned long soma = 0;   //tambem pode despresar uma porcentagem do vetor. O despreso vem de algumas medicoes mais baixas
   int nun[TAMANHO_VETOR];   //ou seja, ele ignora uma certa quantidade de valores mais baixos do sistema
@@ -192,7 +192,7 @@ int media_vetor() // media sala(no momento). Retorna uma media aritimetica das m
 }
 
 /* Reviveu kkkk */
-void adicionar_vetor() // preencher o vetor com cada endereço a media_sala daquele respectivo momento, e sempre atualizando a cada nova interação
+void adicionar_vetor(void) // preencher o vetor com cada endereço a media_sala daquele respectivo momento, e sempre atualizando a cada nova interação
 {
   verificar_intervalo();
 
@@ -220,7 +220,7 @@ void ordenamento_bolha(int num[])   //metodo de ordenamento decrescente de bolha
   }  
 }
 
-bool analisar_barulho() // decide se vai acionar ou nao...      
+bool analisar_barulho(void) // decide se vai acionar ou nao...      
 {
   t_eeprom ep;
 
@@ -236,7 +236,7 @@ bool analisar_barulho() // decide se vai acionar ou nao...
 
 }
 
-void sirene()
+void sirene(void)
 {
   Serial.println("SIRENE ATIVA!!!");
   lcd.clear(); // importante
@@ -258,7 +258,7 @@ void sirene()
   delay(DELAY_HISTERESE*1000);
 }
 
-void zerar_vetor() // uma vez passado o limite, zerar o vetor com as medidas da sala e começar a preencher novamente
+void zerar_vetor(void) // uma vez passado o limite, zerar o vetor com as medidas da sala e começar a preencher novamente
 {
   for(int i = 0; i< TAMANHO_VETOR; i++)
     vetor[i] = 0;
@@ -325,24 +325,6 @@ void verificar_intervalo(void)
         sensor_status[i] = true;
 
   return;
-}
-
-void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
-{
-  unsigned long soma[NUM_SENSOR];
-  int i, j;
-  
-  for(i = 0; i< NUM_SENSOR ; i++)
-    soma[i] = 0;
-
-  for(i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
-    for(i = 0; i< NUM_SENSOR ; i++)
-      soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
-
-  for(i = 0; i< NUM_INTERACAO ; i++)
-    sensor_sinal[i] = soma[i]/NUM_INTERACAO;
-
-  return soma/NUM_INTERACAO;
 }
 
 
