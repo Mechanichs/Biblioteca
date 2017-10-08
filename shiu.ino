@@ -32,6 +32,8 @@ typedef struct st_eeprom{
   int tolerancia;
 }t_eeprom;
 
+bool   chave_sensor[NUM_SENSOR]         
+bool  status_sensor[NUM_SENSOR]         
 short  sensor_porta[NUM_SENSOR]         = {A0};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
 short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
@@ -65,6 +67,8 @@ void setup()
 
   for(int i=0, i<NUM_SENSOR; i++)
   {
+    chave_sensor[i]=true;
+    status_sensor[i]=true;
     pinMode(sensor_porta[i], INPUT);
     pinMode(potenciometro_porta[i], INPUT);
   }
@@ -154,13 +158,21 @@ void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, 
   return soma/NUM_INTERACAO;
 }
 
-int media_sala() // media sala(no momento). Ele permite retornar uma media aritimetica dos valores dos sensores espalhados pela sala no momento da medicao
+int media_sala(void) // media sala(no momento). Ele permite retornar uma media aritimetica dos valores dos sensores espalhados pela sala no momento da medicao
 {
+  int j=0;
   unsigned long soma = 0;
-  for(int i = 0; i < NUM_SENSOR; i++)
-    soma += sensor_sinal[i];
 
-  return soma/NUM_SENSOR;
+  for(int i = 0; i < NUM_SENSOR; i++)
+    if(chave_sensor[i])
+      if(status_sensor[i])
+      {
+        soma += sensor_sinal[i];
+        j++;
+      }
+
+
+  return soma/j;
 }
 
 int media_vetor() // media sala(no momento). Retorna uma media aritimetica das medidas recolhidas durante cerca de 9 segundos(ainda precisa averiguar esse tempo)
@@ -182,6 +194,8 @@ int media_vetor() // media sala(no momento). Retorna uma media aritimetica das m
 /* Reviveu kkkk */
 void adicionar_vetor() // preencher o vetor com cada endereço a media_sala daquele respectivo momento, e sempre atualizando a cada nova interação
 {
+  verificar_intervalo();
+
   vetor[contador] = media_sala(); //com o contador ele sempre modificara a ultima analise feita, preservando assim os dados mais recentes
 
   contador++;
@@ -298,4 +312,34 @@ void mod_tolerancia(char c) //modificar_tolerancia
 
   EEPROM.put(0, ep);
 }
+
+void verificar_intervalo(void)
+{
+  int i;
+
+  for(i=0; i<NUM_SENSOR; i++)
+    if(sensor_sinal[i]<20 || sensor_sinal[i]>950)
+      status_sensor[i] = false;
+
+  return;
+}
+
+void ler_sensor() // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
+{
+  unsigned long soma[NUM_SENSOR];
+  int i, j;
+  
+  for(i = 0; i< NUM_SENSOR ; i++)
+    soma[i] = 0;
+
+  for(i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
+    for(i = 0; i< NUM_SENSOR ; i++)
+      soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
+
+  for(i = 0; i< NUM_INTERACAO ; i++)
+    sensor_sinal[i] = soma[i]/NUM_INTERACAO;
+
+  return soma/NUM_INTERACAO;
+}
+
 
