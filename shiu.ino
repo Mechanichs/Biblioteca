@@ -32,8 +32,8 @@ typedef struct st_eeprom{
   int tolerancia;
 }t_eeprom;
 
-bool   sensor_chave[NUM_SENSOR]         
-bool  sensor_status[NUM_SENSOR]         
+bool   sensor_chave[NUM_SENSOR];        
+bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A0};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
 short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
@@ -65,7 +65,7 @@ void setup()
   /* pinMode's */
   pinMode(SIRENE, OUTPUT);
 
-  for(int i=0, i<NUM_SENSOR; i++)
+  for(int i=0; i<NUM_SENSOR; i++)
   {
     sensor_chave[i]=true;
     sensor_status[i]=true;
@@ -155,7 +155,7 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
   for(i = 0; i< NUM_INTERACAO ; i++)
     sensor_sinal[i] = soma[i]/NUM_INTERACAO;
 
-  return soma/NUM_INTERACAO;
+  return;
 }
 
 int media_sala(void) // media sala(no momento). Ele permite retornar uma media aritimetica dos valores dos sensores espalhados pela sala no momento da medicao
