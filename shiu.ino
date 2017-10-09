@@ -149,10 +149,11 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
     soma[i] = 0;
 
   for(i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
-    for(i = 0; i< NUM_SENSOR ; i++)
-      soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
+    for(j = 0; j< NUM_SENSOR ; j++)
+      if(sensor_chave[j])
+        soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
 
-  for(i = 0; i< NUM_INTERACAO ; i++)
+  for(i = 0; i< NUM_SENSOR ; i++)
     sensor_sinal[i] = soma[i]/NUM_INTERACAO;
 
   return;
