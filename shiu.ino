@@ -1,7 +1,7 @@
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
-#define LIMITE            6          // Define o limite de erro do sinal do potenciometro.
+#define TOLERANCIA_POTENCIOMETRO 50  // Define o limite de erro do sinal do potenciometro.
 #define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
 #define DELAY_HISTERESE   15          // Valor dado em segundos para depois do acionamento da sirene
@@ -38,6 +38,7 @@ short  sensor_porta[NUM_SENSOR]         = {A0};         // Sensores ligados às 
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
 short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
+short  potenciometro_ideal[NUM_SENSOR]  = {530}
 
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
@@ -323,7 +324,10 @@ void verificar_intervalo(void)
       if(sensor_sinal[i]<20 || sensor_sinal[i]>950)
         sensor_status[i] = false;
       else
-        sensor_status[i] = true;
+        if( potenciometro_sinal[i] > (potenciometro_ideal[i] + TOLERANCIA_POTENCIOMETRO)  || potenciometro_sinal[i] < (potenciometro_ideal[i] - TOLERANCIA_POTENCIOMETRO))
+          sensor_status[i]=false;
+        else
+          sensor_status[i] = true;
 
   return;
 }
