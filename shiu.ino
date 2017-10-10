@@ -13,7 +13,7 @@
 #define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia.
 #define TAMANHO_VETOR     80         // Aproximadamente 10 interações por segundo.
 #define NUM_SENSOR        1          // Numero de sensores usados. ~ (SENSOR SONORO)
-#define NUM_INTERACAO     700        // Numero de interções no filtro linear.
+#define NUM_INTERACAO     100        // Numero de interções no filtro linear.
 #define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
 #define OVERFLOW          4000000000 // Over flow para o unsigned long.
 #define SIRENE            13          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
@@ -155,7 +155,10 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
         soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
 
   for(i = 0; i< NUM_SENSOR ; i++)
+  {
+    potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);    //segundo verifiquei, o potenciometro so esta no codigo para ser impresso
     sensor_sinal[i] = soma[i]/NUM_INTERACAO;
+  }
 
   return;
 }
