@@ -31,22 +31,22 @@
 typedef struct st_eeprom{
   int contador;
   int tolerancia;
+  bool sensor_chave[NUM_SENSOR];        
+  short potenciometro_ideal[NUM_SENSOR];
 }t_eeprom;
 
-bool   sensor_chave[NUM_SENSOR];        
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A0};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
 short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
-short  potenciometro_ideal[NUM_SENSOR]  = {530}
 
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
-int   potenciometro_ideal[NUM_SENSOR]   = {};    // Valor ideal do potenciometro
-int   tempo                             = 0;
-int   key                               = 1;
-int   contador                          = 0;    //Permite trocar apenas o valor mais antigo do vetor. Usado em adicionar_vetor().
+//int   potenciometro_ideal[NUM_SENSOR]   = {};    // Valor ideal do potenciometro
+//int   tempo                             = 0;
+//int   key                               = 1;
+//int   contador                          = 0;    //Permite trocar apenas o valor mais antigo do vetor. Usado em adicionar_vetor().
 long unsigned time1, time2; //variaveis de apoio para calcular o delta tempo
 int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 
