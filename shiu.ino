@@ -19,7 +19,8 @@
 #define SIRENE            13          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
 #define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
-#define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor(). 
+#define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
+#define TEMPO_PROCESSAMENTO 200
 
 /*
 ####   EPROM   ####
@@ -103,6 +104,7 @@ void loop()
     Serial.println(resp1);
     //lcd.print(resp1);
   }
+  while(millis()-time1 < TEMPO_PROCESSAMENTO){}
 }
 /* ----- Pós void setup & loop ----- */
 void menu_iniciar(void) // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
