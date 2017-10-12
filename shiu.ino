@@ -56,6 +56,10 @@ LiquidCrystal lcd(5, 4, 3, 2, 1, 0);
 
 void setup()
 {
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+
   delay(DELAY_INICIAL); // sistema é ligado na energia
 
   if(ZERAR)
@@ -69,11 +73,13 @@ void setup()
 
   for(int i=0; i<NUM_SENSOR; i++)
   {
-    sensor_chave[i]=true;
+    ep.sensor_chave[i]=true;
     sensor_status[i]=true;
+    ep.potenciometro_ideal[i] = 540;
     pinMode(sensor_porta[i], INPUT);
     pinMode(potenciometro_porta[i], INPUT);
   }
+  EEPROM.put(0, ep);
 
   lcd.begin(16, 2);
 
@@ -104,7 +110,8 @@ void loop()
     Serial.println(resp1);
     //lcd.print(resp1);
   }
-  while(millis()-time1 < TEMPO_PROCESSAMENTO){}
+  while(millis()-time1 < TEMPO_PROCESSAMENTO)
+    delay(1);
 }
 /* ----- Pós void setup & loop ----- */
 void menu_iniciar(void) // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
@@ -147,13 +154,17 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
 {
   unsigned long soma[NUM_SENSOR];
   int i, j;
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+
   
   for(i = 0; i< NUM_SENSOR ; i++)
     soma[i] = 0;
 
   for(i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
     for(j = 0; j< NUM_SENSOR ; j++)
-      if(sensor_chave[j])
+      if(ep.sensor_chave[j])
         soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
 
   for(i = 0; i< NUM_SENSOR ; i++)
@@ -169,9 +180,13 @@ int media_sala(void) // media sala(no momento). Ele permite retornar uma media a
 {
   int j=0;
   unsigned long soma = 0;
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+
 
   for(int i = 0; i < NUM_SENSOR; i++)
-    if(sensor_chave[i])
+    if(ep.sensor_chave[i])
       if(sensor_status[i])
       {
         soma += sensor_sinal[i];
@@ -320,16 +335,45 @@ void mod_tolerancia(char c) //modificar_tolerancia
   EEPROM.put(0, ep);
 }
 
+void mod_chave(int sensor, bool status) //modificar_chave - do sensor
+{
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+
+  ep.sensor_chave[sensor] = status;
+
+  EEPROM.put(0, ep);
+}
+
+void mod_pot_ideal(int pot, char botao) //modificar_potenciometro_ideal
+{
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+
+  if(botao=='+')
+    ep.potenciometro_ideal[pot] = ep.potenciometro_ideal[pot] + 1;
+  else if(botao=='-')
+    ep.potenciometro_ideal[pot] = ep.potenciometro_ideal[pot] - 1;
+
+  EEPROM.put(0, ep);
+}
+
 void verificar_intervalo(void)
 {
   int i;
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+
 
   for(i=0; i<NUM_SENSOR; i++)
-    if(sensor_chave[i])
+    if(ep.sensor_chave[i])
       if(sensor_sinal[i]<20 || sensor_sinal[i]>950)
         sensor_status[i] = false;
       else
-        if( potenciometro_sinal[i] > (potenciometro_ideal[i] + TOLERANCIA_POTENCIOMETRO)  || potenciometro_sinal[i] < (potenciometro_ideal[i] - TOLERANCIA_POTENCIOMETRO))
+        if( potenciometro_sinal[i] > (ep.potenciometro_ideal[i] + TOLERANCIA_POTENCIOMETRO)  || potenciometro_sinal[i] < (ep.potenciometro_ideal[i] - TOLERANCIA_POTENCIOMETRO))
           sensor_status[i]=false;
         else
           sensor_status[i] = true;
