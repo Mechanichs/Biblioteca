@@ -184,7 +184,6 @@ int media_sala(void) // media sala(no momento). Ele permite retornar uma media a
 
   EEPROM.get(0, ep);
 
-
   for(int i = 0; i < NUM_SENSOR; i++)
     if(ep.sensor_chave[i])
       if(sensor_status[i])
@@ -192,7 +191,6 @@ int media_sala(void) // media sala(no momento). Ele permite retornar uma media a
         soma += sensor_sinal[i];
         j++;
       }
-
 
   return soma/j;
 }
@@ -255,7 +253,6 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
     return true;
 
   return false;
-
 }
 
 void sirene(void)
@@ -264,7 +261,6 @@ void sirene(void)
   lcd.clear(); // importante
   lcd.setCursor(0, 0);
   lcd.print("Sirene!!!");
-
 
   digitalWrite(SIRENE, HIGH);
   delay(DELAY_SIRENE*6);
@@ -286,7 +282,7 @@ void zerar_vetor(void) // uma vez passado o limite, zerar o vetor com as medidas
     vetor[i] = 0;
 }
 
-void adicionar_contador(void)
+void adicionar_contador(void)//adiciona +1 no contador de ativacoes e grava novamente no eeprom [funcao auxiliar eeprom]
 {
   t_eeprom ep;
 
@@ -295,7 +291,7 @@ void adicionar_contador(void)
   EEPROM.put(0, ep);
 }
 
-void clear_contador(void)
+void clear_contador(void)//zera o contador de ativacoes da sirene [funcao auxiliar eeprom]
 {
   t_eeprom ep;
 
@@ -304,7 +300,7 @@ void clear_contador(void)
   EEPROM.put(0, ep);
 }
 
-void clear_eeprom(void)
+void clear_eeprom(void)//limpa todo o eeprom e depois carrega a configuracao padrao [funcao auxiliar eeprom]
 {
   for(int i=0; i<EEPROM.length(); i++)
     EEPROM.write(i,0);
@@ -312,16 +308,23 @@ void clear_eeprom(void)
   conf_padrao();
 }
 
-void conf_padrao(void)
-{
+void conf_padrao(void)//carrega a parte inicial do eeprom(endereco 0) com a struct das informacoes do eeprom
+{                     //modifica todas as configuracoes para "configuracoes de fabrica"
   t_eeprom ep;
 
   ep.contador=0;
   ep.tolerancia = NIVEL_LIMITE;
+  
+  for(int i=0; i<NUM_SENSOR; i++)
+  {
+    ep.sensor_chave[i]=true;
+    ep.potenciometro_ideal[i] = 540;
+  }
+
   EEPROM.put(0, ep);
 }
 
-void mod_tolerancia(char c) //modificar_tolerancia
+void mod_tolerancia(char c) //modificar_tolerancia [funcao auxiliar eeprom]
 {
   t_eeprom ep;
 
@@ -335,7 +338,7 @@ void mod_tolerancia(char c) //modificar_tolerancia
   EEPROM.put(0, ep);
 }
 
-void mod_chave(int sensor, bool status) //modificar_chave - do sensor
+void mod_chave(int sensor, bool status) //modificar_chave - do sensor [funcao auxiliar eeprom]
 {
   t_eeprom ep;
 
@@ -346,7 +349,7 @@ void mod_chave(int sensor, bool status) //modificar_chave - do sensor
   EEPROM.put(0, ep);
 }
 
-void mod_pot_ideal(int pot, char botao) //modificar_potenciometro_ideal
+void mod_pot_ideal(int pot, char botao) //modificar_potenciometro_ideal [funcao auxiliar eeprom]
 {
   t_eeprom ep;
 
@@ -360,13 +363,12 @@ void mod_pot_ideal(int pot, char botao) //modificar_potenciometro_ideal
   EEPROM.put(0, ep);
 }
 
-void verificar_intervalo(void)
-{
-  int i;
-  t_eeprom ep;
+void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de uma analise de intervalo
+{                             //e posteriormente verifica se o potenciometro esta dentro do intevalo desejado
+  int i;                      //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor
+  t_eeprom ep;                //entre na media da sala
 
   EEPROM.get(0, ep);
-
 
   for(i=0; i<NUM_SENSOR; i++)
     if(ep.sensor_chave[i])
