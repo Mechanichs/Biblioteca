@@ -53,6 +53,7 @@ int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 void(*reset)(void) = 0; //Função responsável por reiniciar a programação pelo código.
 
 LiquidCrystal lcd(5, 4, 3, 2, 1, 0);
+//LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Para Arduino Uno
 
 void setup()
 {
