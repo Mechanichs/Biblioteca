@@ -47,7 +47,7 @@ int   media_total                       = 0;     // Valor medio do vetor de valo
 //int   potenciometro_ideal[NUM_SENSOR]   = {};    // Valor ideal do potenciometro
 //int   tempo                             = 0;
 //int   key                               = 1;
-//int   contador                          = 0;    //Permite trocar apenas o valor mais antigo do vetor. Usado em adicionar_vetor().
+int   contador                          = 0;    //Permite trocar apenas o valor mais antigo do vetor. Usado em adicionar_vetor().
 long unsigned time1, time2; //variaveis de apoio para calcular o delta tempo
 int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 
@@ -369,7 +369,7 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
 {                             //e posteriormente verifica se o potenciometro esta dentro do intevalo desejado
   //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor  
   //entre na media da sala
-  int i, aux, num, escolha;
+  int i, j, k, aux, num, escolha;
   float valor, maior = 0.0;
   bool key=true;
   t_eeprom ep;
@@ -417,7 +417,7 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
 
 float porcento_aux(int qt, int l, ...)
 {
-  float valor;
+  float media;
   int soma=0, i;
   va_list va;
 
