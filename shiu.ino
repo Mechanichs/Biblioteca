@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
@@ -371,7 +372,8 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
   int i, aux, num, escolha;
   bool key=true;
   t_eeprom ep;
-  num = aux = escolha = 4;
+  num = aux = 3;
+  escolha = -1;
 
   EEPROM.get(0, ep);
 
@@ -392,47 +394,42 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
       break;
     }
 
-  if(key && NUM_SENSOR == 4)
+  if(key && NUM_SENSOR >= 4)
   {
     for(i=0; i<=num; i++)
       for(j=i+1; j<=num; j++)
         for(k=j+1; k<=num; k++)
         {
-          valor = porcento_aux(i,j,k,aux);
+          valor = porcento_aux(3, aux, i, j, k);
           if(valor>=0.2)
             escolha = aux;
-          //printf("%d %d %d - %d\n", i, j, k, aux);
-          //aux--;
+          aux--;
         }
 
-    if(escolha!=NUM_SENSOR)
+    if(escolha!= -1)
       sensor_status[escolha]=false;
   }
-
 
   return;
 }
 
-float porcento_aux(int i, int j, int k, int l)
+float porcento_aux(int qt, int l, ...)
 {
   float valor;
-  int soma=0;
+  int soma=0, i;
+  va_list va;
 
-  soma += sensor_sinal[i];
-  soma += sensor_sinal[j];
-  soma += sensor_sinal[k];
+  va_start(va, qt);
 
-  valor = soma/3;
+  for(i=0; i<qt; i++)
+    soma += sensor_sinal[va_arg(va, int)];
 
-  //porcento = (valor - sensor_sinal[l])/valor;
+  va_end(va);
 
-  return (valor - sensor_sinal[l])/valor;
+  media = soma/3;
+
+  return (media - sensor_sinal[l])/media; //se o valor do sensor for menor, entao ele dara uma subtracao positiva e dividindo pelo valor do maior vai dar a porcentagem desejada
 }
-
-
-
-
-
 
 
 
