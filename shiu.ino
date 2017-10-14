@@ -370,6 +370,7 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
   //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor  
   //entre na media da sala
   int i, aux, num, escolha;
+  float valor, maior = 0.0;
   bool key=true;
   t_eeprom ep;
   num = aux = 3;
@@ -402,7 +403,8 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
         {
           valor = porcento_aux(3, aux, i, j, k);
           if(valor>=0.2)
-            escolha = aux;
+            if(valor>maior)
+              escolha = aux;
           aux--;
         }
 
