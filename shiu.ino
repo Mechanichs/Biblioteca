@@ -26,7 +26,7 @@
 ####   EPROM   ####
 ## Enderecos X Conteudo ##
 0 - Struct com os dados as variaveis utilizadas no eeprom
-*/
+ */
 
 typedef struct st_eeprom{
   int contador;
@@ -103,7 +103,7 @@ void loop()
   //else // caso não o sirene...
   menu_iniciar(); // volta para o incicio (o display mostrando os valores atuais - recebido pelos sensores)
   delay(DELAY_MEDICAO);//tempo entre cada medicao
-  
+
   if(DEBUG)
   {
     resp1 = millis() - time1;
@@ -159,7 +159,7 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
 
   EEPROM.get(0, ep);
 
-  
+
   for(i = 0; i< NUM_SENSOR ; i++)
     soma[i] = 0;
 
@@ -305,7 +305,7 @@ void clear_eeprom(void)//limpa todo o eeprom e depois carrega a configuracao pad
 {
   for(int i=0; i<EEPROM.length(); i++)
     EEPROM.write(i,0);
- 
+
   conf_padrao();
 }
 
@@ -315,7 +315,7 @@ void conf_padrao(void)//carrega a parte inicial do eeprom(endereco 0) com a stru
 
   ep.contador=0;
   ep.tolerancia = NIVEL_LIMITE;
-  
+
   for(int i=0; i<NUM_SENSOR; i++)
   {
     ep.sensor_chave[i]=true;
@@ -366,8 +366,12 @@ void mod_pot_ideal(int pot, char botao) //modificar_potenciometro_ideal [funcao 
 
 void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de uma analise de intervalo
 {                             //e posteriormente verifica se o potenciometro esta dentro do intevalo desejado
-  int i;                      //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor
-  t_eeprom ep;                //entre na media da sala
+  //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor  
+  //entre na media da sala
+  int i, aux, num, escolha;
+  bool key=true;
+  t_eeprom ep;
+  num = aux = escolha = 4;
 
   EEPROM.get(0, ep);
 
@@ -381,7 +385,54 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
         else
           sensor_status[i] = true;
 
+  for(i=0; i<NUM_SENSOR; i++)
+    if(ep.sensor_chave[i]==false || sensor_status[i]==false)
+    {
+      key = false;
+      break;
+    }
+
+  if(key && NUM_SENSOR == 4)
+  {
+    for(i=0; i<=num; i++)
+      for(j=i+1; j<=num; j++)
+        for(k=j+1; k<=num; k++)
+        {
+          valor = porcento_aux(i,j,k,aux);
+          if(valor>=0.2)
+            escolha = aux;
+          //printf("%d %d %d - %d\n", i, j, k, aux);
+          //aux--;
+        }
+
+    if(escolha!=NUM_SENSOR)
+      sensor_status[escolha]=false;
+  }
+
+
   return;
 }
+
+float porcento_aux(int i, int j, int k, int l)
+{
+  float valor;
+  int soma=0;
+
+  soma += sensor_sinal[i];
+  soma += sensor_sinal[j];
+  soma += sensor_sinal[k];
+
+  valor = soma/3;
+
+  //porcento = (valor - sensor_sinal[l])/valor;
+
+  return (valor - sensor_sinal[l])/valor;
+}
+
+
+
+
+
+
 
 
