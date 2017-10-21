@@ -5,7 +5,7 @@
 #define TOLERANCIA_POTENCIOMETRO 50  // Define o limite de erro do sinal do potenciometro.
 #define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
-#define DELAY_HISTERESE   15          // Valor dado em segundos para depois do acionamento da sirene
+#define DELAY_HISTERESE   5          // Valor dado em segundos para depois do acionamento da sirene
 #define DELAY_MEDICAO     200        // Define o tempo para o delay entre as medicoes que serao adicionadas no vetor (em milisegundos)
 #define DELAY_SIRENE      500        // Define o tempo para o delay de debug em milissegundos.
 #define DELAY_BOTAO       200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
@@ -60,12 +60,12 @@ void setup()
 {
   t_eeprom ep;
 
-  EEPROM.get(0, ep);
-
   delay(DELAY_INICIAL); // sistema é ligado na energia
 
   if(ZERAR)
     clear_eeprom();
+
+  EEPROM.get(0, ep);
 
   if(DEBUG) 
     Serial.begin(9600);
