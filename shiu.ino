@@ -13,7 +13,7 @@
 #define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando.
 #define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia.
 #define TAMANHO_VETOR     80         // Aproximadamente 10 interações por segundo.
-#define NUM_SENSOR        1          // Numero de sensores usados. ~ (SENSOR SONORO)
+#define NUM_SENSOR        3          // Numero de sensores usados. ~ (SENSOR SONORO)
 #define NUM_INTERACAO     100        // Numero de interções no filtro linear.
 #define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
 #define OVERFLOW          4000000000 // Over flow para o unsigned long.
@@ -118,7 +118,7 @@ void loop()
 /* ----- Pós void setup & loop ----- */
 void menu_iniciar(void) // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
 {
-  lcd.clear(); // importante
+/*lcd.clear(); // importante
   lcd.setCursor(0, 0);
   lcd.print("Sin: ");
   lcd.setCursor(5, 0); // posicionamento primeira linha
@@ -149,7 +149,29 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
   lcd.setCursor(11, 1);
   lcd.print(media_total);
   Serial.println("");
-  delay(DELAY_DISPLAY); // evita que a tela fique piscando
+*/
+  lcd.clear(); // importante
+  for(int i = 0; i < NUM_SENSOR; i++)
+  {
+    lcd.setCursor(i*4, 0); // posicionamento primeira linha
+    lcd.print(sensor_sinal[i]); // sinal = porta
+    Serial.print(sensor_sinal[i]); // sinal = porta
+    Serial.print("     "); // posicionamento primeira linha
+  }
+  Serial.println("");
+  for(int i = 0; i < NUM_SENSOR; i++)
+  {
+    lcd.setCursor(i*4, 1); // posicionamento primeira linha
+    lcd.print(potenciometro_sinal[i]); // sinal = porta
+    Serial.print(potenciometro_sinal[i]); // sinal = porta
+    Serial.print("     "); // posicionamento segunda linha 
+  }/*
+  lcd.setCursor(10, 0);
+  lcd.print("Med V");
+  lcd.setCursor(11, 1);
+  lcd.print(media_total);*/
+  Serial.println("");
+  delay(DELAY_DISPLAY); // evita que a tela fique piscando ~~~ ISSO AQUI E' INUTIL PELA LOGICA
 }
 /* ----- Começando aqui após o INÍCIO ----- */
 void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
