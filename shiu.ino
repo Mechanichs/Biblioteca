@@ -37,9 +37,9 @@ typedef struct st_eeprom{
 }t_eeprom;
 
 bool  sensor_status[NUM_SENSOR];        
-short  sensor_porta[NUM_SENSOR]         = {A0};         // Sensores ligados às portas analógicas
+short  sensor_porta[NUM_SENSOR]         = {A0,A2,A4,A6};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
-short  potenciometro_porta[NUM_SENSOR]  = {A1};         // Responsáveis por gravar saida do potenciometro
+short  potenciometro_porta[NUM_SENSOR]  = {A1,A3,A5,A7};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
@@ -78,8 +78,8 @@ void setup()
     ep.sensor_chave[i]=true;
     sensor_status[i]=true;
     ep.potenciometro_ideal[i] = 540;
-    pinMode(sensor_porta[i], INPUT);
-    pinMode(potenciometro_porta[i], INPUT);
+    //pinMode(sensor_porta[i], INPUT);
+    //pinMode(potenciometro_porta[i], INPUT);
   }
   EEPROM.put(0, ep);
 
@@ -118,38 +118,6 @@ void loop()
 /* ----- Pós void setup & loop ----- */
 void menu_iniciar(void) // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
 {
-/*lcd.clear(); // importante
-  lcd.setCursor(0, 0);
-  lcd.print("Sin: ");
-  lcd.setCursor(5, 0); // posicionamento primeira linha
-  for(int i = 0; i < NUM_SENSOR; i++)
-  {
-    Serial.print(sensor_sinal[i]); // sinal = porta
-    lcd.print(sensor_sinal[i]); // sinal = porta
-    Serial.print("     "); // posicionamento primeira linha
-    //lcd.setCursor(0, i+4+6); // posicionamento primeira linha
-  }
-  Serial.println("");
-  lcd.setCursor(0, 1);
-  lcd.print("Pot: ");
-  lcd.setCursor(5, 1); // posicionamento primeira linha
-  for(int i = 0; i < NUM_SENSOR; i++)
-  {
-    Serial.print(potenciometro_sinal[i]); // sinal = porta
-    lcd.print(potenciometro_sinal[i]); // sinal = porta
-    Serial.print("     "); // posicionamento segunda linha 
-    //lcd.setCursor(1, i+4+6); // posicionamento primeira linha
-  }
-  lcd.setCursor(9, 0);
-  lcd.print("|");
-  lcd.setCursor(9, 1);
-  lcd.print("|");
-  lcd.setCursor(10, 0);
-  lcd.print("Med V");
-  lcd.setCursor(11, 1);
-  lcd.print(media_total);
-  Serial.println("");
-*/
   lcd.clear(); // importante
   for(int i = 0; i < NUM_SENSOR; i++)
   {
@@ -165,11 +133,7 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
     lcd.print(potenciometro_sinal[i]); // sinal = porta
     Serial.print(potenciometro_sinal[i]); // sinal = porta
     Serial.print("     "); // posicionamento segunda linha 
-  }/*
-  lcd.setCursor(10, 0);
-  lcd.print("Med V");
-  lcd.setCursor(11, 1);
-  lcd.print(media_total);*/
+  }
   Serial.println("");
   delay(DELAY_DISPLAY); // evita que a tela fique piscando ~~~ ISSO AQUI E' INUTIL PELA LOGICA
 }
