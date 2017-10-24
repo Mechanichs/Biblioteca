@@ -2,10 +2,10 @@
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
-#define TOLERANCIA_POTENCIOMETRO 50  // Define o limite de erro do sinal do potenciometro.
+#define TOLERANCIA_POTENCIOMETRO 250  // Define o limite de erro do sinal do potenciometro.
 #define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
-#define DELAY_HISTERESE   5          // Valor dado em segundos para depois do acionamento da sirene
+#define DELAY_HISTERESE   4          // Valor dado em segundos para depois do acionamento da sirene
 #define DELAY_MEDICAO     200        // Define o tempo para o delay entre as medicoes que serao adicionadas no vetor (em milisegundos)
 #define DELAY_SIRENE      500        // Define o tempo para o delay de debug em milissegundos.
 #define DELAY_BOTAO       200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
@@ -13,7 +13,7 @@
 #define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando.
 #define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia.
 #define TAMANHO_VETOR     80         // Aproximadamente 10 interações por segundo.
-#define NUM_SENSOR        3          // Numero de sensores usados. ~ (SENSOR SONORO)
+#define NUM_SENSOR        4          // Numero de sensores usados. ~ (SENSOR SONORO)
 #define NUM_INTERACAO     100        // Numero de interções no filtro linear.
 #define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
 #define OVERFLOW          4000000000 // Over flow para o unsigned long.
@@ -21,7 +21,7 @@
 #define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
-#define TEMPO_PROCESSAMENTO 200
+#define TEMPO_PROCESSAMENTO 350
 
 /*
 ####   EPROM   ####
@@ -37,9 +37,9 @@ typedef struct st_eeprom{
 }t_eeprom;
 
 bool  sensor_status[NUM_SENSOR];        
-short  sensor_porta[NUM_SENSOR]         = {A0,A2,A4,A6};         // Sensores ligados às portas analógicas
+short  sensor_porta[NUM_SENSOR]         = {A0, A2, A4, A6};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
-short  potenciometro_porta[NUM_SENSOR]  = {A1,A3,A5,A7};         // Responsáveis por gravar saida do potenciometro
+short  potenciometro_porta[NUM_SENSOR]  = {A1, A3, A5, A7};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
@@ -53,19 +53,19 @@ int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 
 void(*reset)(void) = 0; //Função responsável por reiniciar a programação pelo código.
 
-LiquidCrystal lcd(5, 4, 3, 2, 1, 0);
-//LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Para Arduino Uno
+//LiquidCrystal lcd(5, 4, 3, 2, 1, 0);
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Para Arduino Uno
 
 void setup()
 {
-  t_eeprom ep;
-
-  delay(DELAY_INICIAL); // sistema é ligado na energia
-
+  t_eeprom ep;  
+ 
   if(ZERAR)
     clear_eeprom();
-
+    
   EEPROM.get(0, ep);
+
+  delay(DELAY_INICIAL); // sistema é ligado na energia
 
   if(DEBUG) 
     Serial.begin(9600);
@@ -114,6 +114,13 @@ void loop()
   }
   while(millis()-time1 < TEMPO_PROCESSAMENTO)
     delay(1);
+  if(DEBUG)
+  {
+    resp1 = millis() - time1;
+    Serial.print("> Temp Loop Final: ");
+    Serial.println(resp1);
+    //lcd.print(resp1);
+  }
 }
 /* ----- Pós void setup & loop ----- */
 void menu_iniciar(void) // função que lança no display o que o sensor esta captando no momento (sensor de som e o potenciomentro) ~ sinal
@@ -135,7 +142,7 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
     Serial.print("     "); // posicionamento segunda linha 
   }
   Serial.println("");
-  delay(DELAY_DISPLAY); // evita que a tela fique piscando ~~~ ISSO AQUI E' INUTIL PELA LOGICA
+  delay(DELAY_DISPLAY); // evita que a tela fique piscando
 }
 /* ----- Começando aqui após o INÍCIO ----- */
 void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
@@ -418,6 +425,4 @@ float porcento_aux(int qt, int l, ...)
 
   return (media - sensor_sinal[l])/media; //se o valor do sensor for menor, entao ele dara uma subtracao positiva e dividindo pelo valor do maior vai dar a porcentagem desejada
 }
-
-
 
