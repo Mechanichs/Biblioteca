@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
+#include <SD.h>
 
 #define TOLERANCIA_POTENCIOMETRO 250  // Define o limite de erro do sinal do potenciometro.
 #define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
@@ -17,7 +18,7 @@
 #define NUM_INTERACAO     100        // Numero de interções no filtro linear.
 #define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
 #define OVERFLOW          4000000000 // Over flow para o unsigned long.
-#define SIRENE            13          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
+#define SIRENE            8          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
 #define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
@@ -51,27 +52,44 @@ int   contador                          = 0;    //Permite trocar apenas o valor 
 long unsigned time1, time2; //variaveis de apoio para calcular o delta tempo
 int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 
+File arq;
+
 void(*reset)(void) = 0; //Função responsável por reiniciar a programação pelo código.
 
 //LiquidCrystal lcd(5, 4, 3, 2, 1, 0);
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Para Arduino Uno
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 void setup()
 {
+  delay(DELAY_INICIAL); // sistema é ligado na energia
+  
   t_eeprom ep;  
  
   if(ZERAR)
     clear_eeprom();
     
   EEPROM.get(0, ep);
+  SD.begin(10);
 
-  delay(DELAY_INICIAL); // sistema é ligado na energia
+  arq = SD.open("texto.txt", FILE_WRITE);
+  lcd.setCursor(0, 0); // posicionamento primeira linha
 
+  if (arq) {
+    for(int i=0;i<20;i++)
+      arq.println("Teste de arquivos TXT em SD no Arduino");
+    Serial.println("OK.");
+    lcd.println("Arquivo aberto");
+  } else {
+    Serial.println("Erro ao abrir ou criar o arquivo texto.txt.");
+    lcd.println("Erro ao abrir");
+  }
+  delay(1500);
   if(DEBUG) 
     Serial.begin(9600);
 
   /* pinMode's */
   pinMode(SIRENE, OUTPUT);
+  pinMode(9, INPUT);
 
   for(int i=0; i<NUM_SENSOR; i++)
   {
@@ -109,7 +127,9 @@ void loop()
   {
     resp1 = millis() - time1;
     Serial.print("> Temp Loop: ");
+    arq.print("> Temp Loop: ");
     Serial.println(resp1);
+    arq.println(resp1);
     //lcd.print(resp1);
   }
   while(millis()-time1 < TEMPO_PROCESSAMENTO)
@@ -118,8 +138,14 @@ void loop()
   {
     resp1 = millis() - time1;
     Serial.print("> Temp Loop Final: ");
+    arq.print("> Temp Loop Final: ");
     Serial.println(resp1);
+    arq.println(resp1);
     //lcd.print(resp1);
+  }
+  if(digitalRead(9)){
+    arq.close();
+    delay(10000);
   }
 }
 /* ----- Pós void setup & loop ----- */
@@ -131,17 +157,23 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
     lcd.setCursor(i*4, 0); // posicionamento primeira linha
     lcd.print(sensor_sinal[i]); // sinal = porta
     Serial.print(sensor_sinal[i]); // sinal = porta
+    arq.print(sensor_sinal[i]);
     Serial.print("     "); // posicionamento primeira linha
+    arq.print("     "); // posicionamento primeira linha
   }
   Serial.println("");
+  arq.println("");
   for(int i = 0; i < NUM_SENSOR; i++)
   {
     lcd.setCursor(i*4, 1); // posicionamento primeira linha
     lcd.print(potenciometro_sinal[i]); // sinal = porta
     Serial.print(potenciometro_sinal[i]); // sinal = porta
+    arq.print(potenciometro_sinal[i]); // sinal = porta
     Serial.print("     "); // posicionamento segunda linha 
+    arq.print("     "); // posicionamento segunda linha 
   }
   Serial.println("");
+  arq.println("");
   delay(DELAY_DISPLAY); // evita que a tela fique piscando
 }
 /* ----- Começando aqui após o INÍCIO ----- */
@@ -242,7 +274,9 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
   EEPROM.get(0, ep);
   media_total = media_vetor();  //simplificado com a criacao da funcao media vetor
   Serial.print("media vetor: ");
+    arq.print("media vetor: ");
   Serial.println(media_vetor());
+    arq.println(media_vetor());
 
   if(media_total >= ep.tolerancia)
     return true;
@@ -253,6 +287,8 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
 void sirene(void)
 {
   Serial.println("SIRENE ATIVA!!!");
+  for(int i=0;i<4;i++)
+    arq.println("SIRENE ATIVA!!!");
   lcd.clear(); // importante
   lcd.setCursor(0, 0);
   lcd.print("Sirene!!!");
@@ -425,4 +461,3 @@ float porcento_aux(int qt, int l, ...)
 
   return (media - sensor_sinal[l])/media; //se o valor do sensor for menor, entao ele dara uma subtracao positiva e dividindo pelo valor do maior vai dar a porcentagem desejada
 }
-
