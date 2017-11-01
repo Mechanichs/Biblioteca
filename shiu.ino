@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
-#include <SD.h>
+//#include <SD.h>
 
 #define TOLERANCIA_POTENCIOMETRO 250  // Define o limite de erro do sinal do potenciometro.
 #define DEBUG             1          // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
@@ -18,7 +18,7 @@
 #define NUM_INTERACAO     100        // Numero de interções no filtro linear.
 #define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
 #define OVERFLOW          4000000000 // Over flow para o unsigned long.
-#define SIRENE            8          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
+#define SIRENE            11          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
 #define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
@@ -38,9 +38,9 @@ typedef struct st_eeprom{
 }t_eeprom;
 
 bool  sensor_status[NUM_SENSOR];        
-short  sensor_porta[NUM_SENSOR]         = {A0, A2, A4, A6};         // Sensores ligados às portas analógicas
+short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
-short  potenciometro_porta[NUM_SENSOR]  = {A1, A3, A5, A7};         // Responsáveis por gravar saida do potenciometro
+short  potenciometro_porta[NUM_SENSOR]  = {A0, A3, A5, A7};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
@@ -52,40 +52,41 @@ int   contador                          = 0;    //Permite trocar apenas o valor 
 long unsigned time1, time2; //variaveis de apoio para calcular o delta tempo
 int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 
-File arq;
+//File arq;
 
 void(*reset)(void) = 0; //Função responsável por reiniciar a programação pelo código.
 
-//LiquidCrystal lcd(5, 4, 3, 2, 1, 0);
-LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+LiquidCrystal lcd(5, 4, 3, 2, 0, 1); //NANO é 0, 1
+//LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 void setup()
 {
   delay(DELAY_INICIAL); // sistema é ligado na energia
   
   t_eeprom ep;  
+    lcd.begin(16, 2);
  
   if(ZERAR)
     clear_eeprom();
     
   EEPROM.get(0, ep);
-  SD.begin(10);
+//  SD.begin(10);
 
-  arq = SD.open("texto.txt", FILE_WRITE);
+ // arq = SD.open("texto.txt", FILE_WRITE);
   lcd.setCursor(0, 0); // posicionamento primeira linha
-
-  if (arq) {
-    for(int i=0;i<20;i++)
-      arq.println("Teste de arquivos TXT em SD no Arduino");
+/*
+//  if (arq) {
+//for(int i=0;i<20;i++)
+//      arq.println("Teste de arquivos TXT em SD no Arduino");
     Serial.println("OK.");
     lcd.println("Arquivo aberto");
   } else {
     Serial.println("Erro ao abrir ou criar o arquivo texto.txt.");
     lcd.println("Erro ao abrir");
-  }
+  }*/
   delay(1500);
-  if(DEBUG) 
-    Serial.begin(9600);
+ // if(DEBUG) 
+ //   Serial.begin(9600);
 
   /* pinMode's */
   pinMode(SIRENE, OUTPUT);
@@ -101,7 +102,7 @@ void setup()
   }
   EEPROM.put(0, ep);
 
-  lcd.begin(16, 2);
+
 
   zerar_vetor(); //zera o vetor para nao haver complicacoes nas primeiras medias realizadas
 }
@@ -126,10 +127,10 @@ void loop()
   if(DEBUG)
   {
     resp1 = millis() - time1;
-    Serial.print("> Temp Loop: ");
-    arq.print("> Temp Loop: ");
-    Serial.println(resp1);
-    arq.println(resp1);
+//    Serial.print("> Temp Loop: ");
+ //   arq.print("> Temp Loop: ");
+ //   Serial.println(resp1);
+ //   arq.println(resp1);
     //lcd.print(resp1);
   }
   while(millis()-time1 < TEMPO_PROCESSAMENTO)
@@ -137,14 +138,14 @@ void loop()
   if(DEBUG)
   {
     resp1 = millis() - time1;
-    Serial.print("> Temp Loop Final: ");
-    arq.print("> Temp Loop Final: ");
-    Serial.println(resp1);
-    arq.println(resp1);
+   // Serial.print("> Temp Loop Final: ");
+  //  arq.print("> Temp Loop Final: ");
+  //  Serial.println(resp1);
+  //  arq.println(resp1);
     //lcd.print(resp1);
   }
   if(digitalRead(9)){
-    arq.close();
+//    arq.close();
     delay(10000);
   }
 }
@@ -156,24 +157,24 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
   {
     lcd.setCursor(i*4, 0); // posicionamento primeira linha
     lcd.print(sensor_sinal[i]); // sinal = porta
-    Serial.print(sensor_sinal[i]); // sinal = porta
-    arq.print(sensor_sinal[i]);
-    Serial.print("     "); // posicionamento primeira linha
-    arq.print("     "); // posicionamento primeira linha
+ //   Serial.print(sensor_sinal[i]); // sinal = porta
+   // arq.print(sensor_sinal[i]);
+ //   Serial.print("     "); // posicionamento primeira linha
+  //  arq.print("     "); // posicionamento primeira linha
   }
-  Serial.println("");
-  arq.println("");
+//  Serial.println("");
+//  arq.println("");
   for(int i = 0; i < NUM_SENSOR; i++)
   {
     lcd.setCursor(i*4, 1); // posicionamento primeira linha
     lcd.print(potenciometro_sinal[i]); // sinal = porta
-    Serial.print(potenciometro_sinal[i]); // sinal = porta
-    arq.print(potenciometro_sinal[i]); // sinal = porta
-    Serial.print("     "); // posicionamento segunda linha 
-    arq.print("     "); // posicionamento segunda linha 
+ //   Serial.print(potenciometro_sinal[i]); // sinal = porta
+ //   arq.print(potenciometro_sinal[i]); // sinal = porta
+ //   Serial.print("     "); // posicionamento segunda linha 
+ //   arq.print("     "); // posicionamento segunda linha 
   }
-  Serial.println("");
-  arq.println("");
+//  Serial.println("");
+  //arq.println("");
   delay(DELAY_DISPLAY); // evita que a tela fique piscando
 }
 /* ----- Começando aqui após o INÍCIO ----- */
@@ -273,10 +274,10 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
 
   EEPROM.get(0, ep);
   media_total = media_vetor();  //simplificado com a criacao da funcao media vetor
-  Serial.print("media vetor: ");
-    arq.print("media vetor: ");
-  Serial.println(media_vetor());
-    arq.println(media_vetor());
+//  Serial.print("media vetor: ");
+ //   arq.print("media vetor: ");
+//  Serial.println(media_vetor());
+//    arq.println(media_vetor());
 
   if(media_total >= ep.tolerancia)
     return true;
@@ -286,9 +287,9 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
 
 void sirene(void)
 {
-  Serial.println("SIRENE ATIVA!!!");
-  for(int i=0;i<4;i++)
-    arq.println("SIRENE ATIVA!!!");
+ // Serial.println("SIRENE ATIVA!!!");
+//  for(int i=0;i<4;i++)
+//    arq.println("SIRENE ATIVA!!!");
   lcd.clear(); // importante
   lcd.setCursor(0, 0);
   lcd.print("Sirene!!!");
