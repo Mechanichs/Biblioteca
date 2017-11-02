@@ -9,7 +9,6 @@
 #define MICROSD           false     
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
 #define DELAY_HISTERESE   4          // Valor dado em segundos para depois do acionamento da sirene
-#define DELAY_SIRENE      500        // Define o tempo para o delay de debug em milissegundos.
 #define DELAY_BOTAO       200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
 #define DELAY_AVISO       1000       // Define o tempo de espera para o usuario ler uma menssagem de aviso no display.    *FALTA
 #define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando.
@@ -31,7 +30,8 @@
 ####   EPROM   ####
 ## Enderecos X Conteudo ##
 0 - Struct com os dados as variaveis utilizadas no eeprom
- */
+512 - Struct com os dados as variaveis utilizadas no define
+*/
 
 /*
 #### Portas ####
@@ -44,7 +44,6 @@ LCD: (5, 4, 3, 2, 0, 1)
 MicroSD: 13(SCK), 12(MISO), 11(MOSI), 10(CS)
 Botoes: D6(menu), D7(down), D8(up), D9(change)
 RJ11: GND(preto), Vcc(vermelho), OUT(verde), Pot(amarelo)
-
 */
 
 typedef struct st_eeprom{
@@ -55,7 +54,21 @@ typedef struct st_eeprom{
 }t_eeprom;
 
 typedef struct st_define{
-
+  bool debug;                        // false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+  bool debug_tempo;                  // false     
+  bool microsd;                      // false     
+  bool zerar;                        // 1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
+  float porcent;                     // 0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
+  float delay_histerese;             // 4          // Valor dado em segundos para depois do acionamento da sirene. [Em Segundos]
+  int delay_botao;                   // 200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
+  int delay_inicial;                 // 2000       // Define o tempo para o delay quando o sistema é ligado na energia.
+  int tamanho_vetor;                 // 80         // Aproximadamente 3 interações por segundo.
+  int tolerancia_potenciometro;      // 250        // Define o limite de erro do sinal do potenciometro.
+  unsigned short num_sensor;         // 4          // Numero de sensores usados. ~ (SENSOR SONORO)
+  unsigned short num_interacao;      // 100        // Numero de interções no filtro linear.
+  unsigned short nivel_limite;       // 180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
+  unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
+  unsigned short tempo_processamento;// 320
 }t_define
 
 bool  sensor_status[NUM_SENSOR];        
@@ -222,7 +235,6 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
     Serial.println("");
   if(MICROSD)
     arq.println("");
-  delay(DELAY_DISPLAY); // evita que a tela fique piscando
 }
 /* ----- Começando aqui após o INÍCIO ----- */
 void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciometro, SINAL = PORTA
@@ -350,7 +362,7 @@ void sirene(void)
   lcd.print("Sirene!!!");
 
   digitalWrite(SIRENE, HIGH);
-  delay(DELAY_SIRENE*6);
+  delay(TEMPO_SIRENE*1000);
   digitalWrite(SIRENE, LOW);
 
   lcd.clear(); // importante
