@@ -3,10 +3,10 @@
 #include <LiquidCrystal.h>
 //#include <SD.h>
 
-#define TOLERANCIA_POTENCIOMETRO 250  // Define o limite de erro do sinal do potenciometro.
+#define TOLERANCIA_POTENCIOMETRO 250 // Define o limite de erro do sinal do potenciometro.
 #define DEBUG             false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
-#define DEBUG_TEMPO       false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
-#define MICROSD           false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+#define DEBUG_TEMPO       false     
+#define MICROSD           false     
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
 #define DELAY_HISTERESE   4          // Valor dado em segundos para depois do acionamento da sirene
 #define DELAY_SIRENE      500        // Define o tempo para o delay de debug em milissegundos.
@@ -19,7 +19,9 @@
 #define NUM_INTERACAO     100        // Numero de interções no filtro linear.
 #define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
 #define OVERFLOW          4000000000 // Over flow para o unsigned long.
-#define SIRENE            11          // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
+#define LED               10         
+#define SIRENE            11         // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
+#define LAMPADA           12       
 #define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
@@ -51,6 +53,10 @@ typedef struct st_eeprom{
   bool sensor_chave[NUM_SENSOR];        
   short potenciometro_ideal[NUM_SENSOR];
 }t_eeprom;
+
+typedef struct st_define{
+
+}t_define
 
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
@@ -111,8 +117,9 @@ void setup()
   }
 
   /* pinMode's */
+  pinMode(LED, OUTPUT);
   pinMode(SIRENE, OUTPUT);
-  pinMode(9, INPUT);
+  pinMode(LAMPADA, OUTPUT);
 
   for(int i=0; i<NUM_SENSOR; i++)
   {
@@ -134,7 +141,6 @@ void loop()
   ler_sensor();
   /* Segundo passo */
   adicionar_vetor(); // filtro -> distribuir valores
-  //vetor[contador] = media_sala();
   /* Terceiro passo */
   if(analisar_barulho())
     sirene(); // alarme -> zerar vetor -> delay
@@ -296,17 +302,13 @@ void ordenamento_bolha(int num[])   //metodo de ordenamento decrescente de bolha
 {                                   //com o vetor ordenado de forma decrescente fica possivel simplesmente ignorar as ultimas informacoes do vetor ao calcular a media
   int x, y, aux;
   for( x = 0; x < TAMANHO_VETOR; x++ )
-  {  
     for( y = x + 1; y < TAMANHO_VETOR; y++ ) // sempre 1 elemento à frente
-    {
       if ( num[y] > num[x] )
       {
         aux = num[y];
         num[y] = num[x];
         num[x] = aux;
       }
-    }
-  }  
 }
 
 bool analisar_barulho(void) // decide se vai acionar ou nao...      
@@ -325,6 +327,11 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
     arq.print("media vetor: ");
     arq.println(media_vetor());
   }
+
+  if(media_total >= 160)
+    digitalWrite(LAMPADA, HIGH);
+  else
+    digitalWrite(LAMPADA, LOW);
 
   if(media_total >= ep.tolerancia)
     return true;
