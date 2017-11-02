@@ -31,6 +31,20 @@
 0 - Struct com os dados as variaveis utilizadas no eeprom
  */
 
+/*
+#### Portas ####
+Sensores: A1, A2, A4, A6
+Potenciometros: A0, A3, A5, A7
+Sirene: D11
+Lampada: D12
+Led: D10
+LCD: (5, 4, 3, 2, 0, 1)
+MicroSD: 13(SCK), 12(MISO), 11(MOSI), 10(CS)
+Botoes: D6(menu), D7(down), D8(up), D9(change)
+RJ11: GND(preto), Vcc(vermelho), OUT(verde), Pot(amarelo)
+
+*/
+
 typedef struct st_eeprom{
   int contador;
   int tolerancia;
