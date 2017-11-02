@@ -5,6 +5,7 @@
 
 #define TOLERANCIA_POTENCIOMETRO 250  // Define o limite de erro do sinal do potenciometro.
 #define DEBUG             false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+#define DEBUG_TEMPO       false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
 #define DELAY_HISTERESE   4          // Valor dado em segundos para depois do acionamento da sirene
 #define DELAY_MEDICAO     200        // Define o tempo para o delay entre as medicoes que serao adicionadas no vetor (em milisegundos)
@@ -110,7 +111,7 @@ void setup()
 
 void loop()
 {
-  if(DEBUG)     //Debug usado para descobrir o tempo de utilizacao de processamento do programa
+  if(DEBUG_TEMPO)     //Debug usado para descobrir o tempo de utilizacao de processamento do programa
     time1 = millis();
 
   /* Primeiro passo */
@@ -125,7 +126,7 @@ void loop()
   menu_iniciar(); // volta para o incicio (o display mostrando os valores atuais - recebido pelos sensores)
   delay(DELAY_MEDICAO);//tempo entre cada medicao
 
-  if(DEBUG)
+  if(DEBUG_TEMPO)
   {
     resp1 = millis() - time1;
     if(DEBUG)
@@ -139,7 +140,7 @@ void loop()
   }
   while(millis()-time1 < TEMPO_PROCESSAMENTO)
     delay(1);
-  if(DEBUG)
+  if(DEBUG_TEMPO)
   {
     resp1 = millis() - time1;
     if(DEBUG)
