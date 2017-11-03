@@ -69,7 +69,7 @@ typedef struct st_define{
   unsigned short nivel_limite;       // 180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
   unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
   unsigned short tempo_processamento;// 320
-}t_define
+}t_define;
 
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
@@ -85,7 +85,7 @@ int   contador                          = 0;    //Permite trocar apenas o valor 
 long unsigned time1, time2; //variaveis de apoio para calcular o delta tempo
 int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 
-FILE arq;
+File arq;
 
 void(*reset)(void) = 0; //Função responsável por reiniciar a programação pelo código.
 
