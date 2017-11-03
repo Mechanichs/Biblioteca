@@ -10,7 +10,7 @@
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
 #define DELAY_HISTERESE   4          // Valor dado em segundos para depois do acionamento da sirene
 #define DELAY_BOTAO       200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
-#define DELAY_AVISO       1000       // Define o tempo de espera para o usuario ler uma menssagem de aviso no display.    *FALTA
+#define DELAY_AVISO       2000       // Define o tempo de espera para o usuario ler uma menssagem de aviso no display.    *FALTA
 #define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando.
 #define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia.
 #define TAMANHO_VETOR     80         // Aproximadamente 10 interações por segundo.
@@ -54,7 +54,7 @@ typedef struct st_eeprom{
 }t_eeprom;
 
 typedef struct st_define{
-  bool debug;                        // false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+  bool debug_serial;                 // false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
   bool debug_tempo;                  // false     
   bool microsd;                      // false     
   bool zerar;                        // 1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
@@ -79,7 +79,6 @@ short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligado
 
 int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
-//int   potenciometro_ideal[NUM_SENSOR]   = {};    // Valor ideal do potenciometro
 //int   tempo                             = 0;
 //int   key                               = 1;
 int   contador                          = 0;    //Permite trocar apenas o valor mais antigo do vetor. Usado em adicionar_vetor().
@@ -128,7 +127,7 @@ void setup()
       Serial.println("Erro ao abrir ou criar o arquivo texto.txt.");
       lcd.println("Erro ao abrir");
     }
-    delay(1500); // para o print da tela
+    delay(DELAY_AVISO); // para o print da tela
   }
 
   /* pinMode's */
