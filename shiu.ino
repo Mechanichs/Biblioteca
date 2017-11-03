@@ -1,10 +1,10 @@
 #include <stdarg.h>
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
-//#include <SD.h>
+#include <SD.h>
 
 #define TOLERANCIA_POTENCIOMETRO 250 // Define o limite de erro do sinal do potenciometro.
-#define DEBUG             false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+#define DEBUG_SERIAL      false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
 #define DEBUG_TEMPO       false     
 #define MICROSD           false     
 #define ZERAR             1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
@@ -70,22 +70,6 @@ typedef struct st_define{
   unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
   unsigned short tempo_processamento;// 320
 }t_define
-#define DEBUG                    false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
-#define DEBUG_TEMPO              false     
-#define MICROSD                  false     
-#define ZERAR                    1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
-#define PORCENT                  0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
-#define DELAY_HISTERESE          4          // Valor dado em segundos para depois do acionamento da sirene
-#define DELAY_BOTAO              200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
-#define DELAY_INICIAL            2000       // Define o tempo para o delay quando o sistema é ligado na energia.
-#define TAMANHO_VETOR            80         // Aproximadamente 10 interações por segundo.
-#define TOLERANCIA_POTENCIOMETRO 250 // Define o limite de erro do sinal do potenciometro.
-#define NUM_SENSOR               4          // Numero de sensores usados. ~ (SENSOR SONORO)
-#define NUM_INTERACAO            100        // Numero de interções no filtro linear.
-#define NIVEL_LIMITE             180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
-#define TEMPO_SIRENE             3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
-#define TEMPO_PROCESSAMENTO      320
-
 
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
@@ -117,11 +101,13 @@ void setup()
 
   lcd.begin(16, 2);
  
-  if(DEBUG) 
+  if(DEBUG_SERIAL) 
     Serial.begin(9600);
 
   if(ZERAR)
     clear_eeprom();
+
+  conf_padrao_def();
     
   EEPROM.get(0, ep);
 
@@ -179,7 +165,7 @@ void loop()
   if(DEBUG_TEMPO)
   {
     resp1 = millis() - time1;
-    if(DEBUG)
+    if(DEBUG_SERIAL)
     {
       Serial.print("> Temp Loop: ");
       Serial.println(resp1);
@@ -196,7 +182,7 @@ void loop()
   if(DEBUG_TEMPO)
   {
     resp1 = millis() - time1;
-    if(DEBUG)
+    if(DEBUG_SERIAL)
     {
       Serial.print("> Temp Loop Final: ");
       Serial.println(resp1);
@@ -217,7 +203,7 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
   {
     lcd.setCursor(i*4, 0); // posicionamento primeira linha
     lcd.print(sensor_sinal[i]); // sinal = porta
-    if(DEBUG) 
+    if(DEBUG_SERIAL) 
     {
       Serial.print(sensor_sinal[i]); // sinal = porta
       Serial.print("     "); // posicionamento primeira linha
@@ -228,7 +214,7 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
       arq.print("     "); // posicionamento primeira linha
     }
   }
-    if(DEBUG) 
+    if(DEBUG_SERIAL) 
       Serial.println("");
     if(MICROSD)
       arq.println("");
@@ -236,7 +222,7 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
   {
     lcd.setCursor(i*4, 1); // posicionamento primeira linha
     lcd.print(potenciometro_sinal[i]); // sinal = porta
-    if(DEBUG) 
+    if(DEBUG_SERIAL)
     {
       Serial.print(potenciometro_sinal[i]); // sinal = porta
       Serial.print("     "); // posicionamento segunda linha 
@@ -247,7 +233,7 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
       arq.print("     "); // posicionamento segunda linha 
     }
   }
-  if(DEBUG) 
+  if(DEBUG_SERIAL) 
     Serial.println("");
   if(MICROSD)
     arq.println("");
@@ -345,7 +331,7 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
 
   EEPROM.get(0, ep);
   media_total = media_vetor();  //simplificado com a criacao da funcao media vetor
-  if(DEBUG) 
+  if(DEBUG_SERIAL)
   {
     Serial.print("media vetor: ");
     Serial.println(media_vetor());
@@ -369,7 +355,7 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
 
 void sirene(void)
 {
-  if(DEBUG)
+  if(DEBUG_SERIAL)
     Serial.println("SIRENE ATIVA!!!");
   if(MICROSD)
     arq.println("SIRENE ATIVA!!!");
@@ -439,11 +425,11 @@ void conf_padrao(void)//carrega a parte inicial do eeprom(endereco 0) com a stru
   EEPROM.put(0, ep);
 }
 
-void conf_padrao_def(void)//carrega a parte inicial do eeprom(endereco 0) com a struct das informacoes do eeprom
+void conf_padrao_def(void)//carrega a parte do eeprom(endereco 512) com a struct das informacoes dos define's
 {                     //modifica todas as configuracoes para "configuracoes de fabrica"
   t_define def;
 
-  def.debug                   = DEBUG                   ;
+  def.debug_serial            = DEBUG_SERIAL            ;
   def.debug_tempo             = DEBUG_TEMPO             ;
   def.microsd                 = MICROSD                 ;
   def.zerar                   = ZERAR                   ;
@@ -459,7 +445,7 @@ void conf_padrao_def(void)//carrega a parte inicial do eeprom(endereco 0) com a 
   def.tempo_sirene            = TEMPO_SIRENE            ;
   def.tempo_processamento     = TEMPO_PROCESSAMENTO     ;
 
-  EEPROM.put(0, def);
+  EEPROM.put(512, def);
 }
 
 void mod_tolerancia(char c) //modificar_tolerancia [funcao auxiliar eeprom]
