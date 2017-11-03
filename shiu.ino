@@ -488,37 +488,74 @@ void mod_pot_ideal(int pot, char botao) //modificar_potenciometro_ideal [funcao 
 
 void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de uma analise de intervalo
 {                             //e posteriormente verifica se o potenciometro esta dentro do intevalo desejado
-  //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor  
-  //entre na media da sala
-  int i, j, k, aux, num, escolha;
-  float valor, maior = 0.0;
-  bool key=true;
-  t_eeprom ep;
-  num = aux = 3;
-  escolha = -1;
-
+  t_eeprom ep;                //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor  
+                              //entre na media da sala
   EEPROM.get(0, ep);
+  
+  intervalo_pot(ep);
+
+  pulldown(ep);
+
+  desligar_menor(ep);
+
+  return;
+}
+
+float porcento_aux(int qt, int l, ...)
+{
+  float media;
+  int soma=0, i;
+  va_list va;
+
+  va_start(va, qt);
+
+  for(i=0; i<qt; i++)
+    soma += sensor_sinal[va_arg(va, int)];
+
+  va_end(va);
+
+  media = soma/3;
+
+  return (media - sensor_sinal[l])/media; //se o valor do sensor for menor, entao ele dara uma subtracao positiva e dividindo pelo valor do maior vai dar a porcentagem desejada
+}
+
+void pulldown(t_eeprom ep)
+{
+  int sinal_maior=0, i_maior, i;
 
   for(i=0; i<NUM_SENSOR; i++)
     if(ep.sensor_chave[i])
-      if(sensor_sinal[i]<20 || sensor_sinal[i]>950)
+      if(sinal_maior <= sensor_sinal[i])
+        i_maior = i;
+  
+  for(i=0; i<NUM_SENSOR; i++)
+    if(ep.sensor_chave[i])
+      if(sensor_sinal[i]<=20 || sensor_sinal[i]>950)
         sensor_status[i] = false;
+      else if(porcento_aux(1,i,i_maior) >= 0.65 )
+        sensor_status[i] = false;
+}
+
+void intervalo_pot(t_eeprom ep)
+{
+  int i;
+
+  for(i=0; i<NUM_SENSOR; i++)
+    if(ep.sensor_chave[i])
+      if( potenciometro_sinal[i] > (ep.potenciometro_ideal[i] + TOLERANCIA_POTENCIOMETRO)  || potenciometro_sinal[i] < (ep.potenciometro_ideal[i] - TOLERANCIA_POTENCIOMETRO))
+        sensor_status[i]=false;
       else
-        if( potenciometro_sinal[i] > (ep.potenciometro_ideal[i] + TOLERANCIA_POTENCIOMETRO)  || potenciometro_sinal[i] < (ep.potenciometro_ideal[i] - TOLERANCIA_POTENCIOMETRO))
-          sensor_status[i]=false;
-        else
-          sensor_status[i] = true;
+        sensor_status[i] = true;
+}
 
-  int mais_alto=0, i_mais_alto;
+void desligar_menor(t_eeprom ep)
+{
+  int i, j, k, aux, num, escolha = -1;
+  float valor, maior = 0.0;
+  bool key=true;
 
-  for(i=0; i<NUM_SENSOR; i++)
-    if(mais_alto < sensor_sinal[i])
-      i_mais_alto = i;
-  
-  for(i=0; i<NUM_SENSOR; i++)
-    if(porcento_aux(1,i,i_mais_alto) >= 0.65 )
-      sensor_status = false;
-  
+  num = aux = 3;
+
   for(i=0; i<NUM_SENSOR; i++)
     if(ep.sensor_chave[i]==false || sensor_status[i]==false)
     {
@@ -542,24 +579,6 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
     if(escolha!= -1)
       sensor_status[escolha]=false;
   }
-
-  return;
 }
 
-float porcento_aux(int qt, int l, ...)
-{
-  float media;
-  int soma=0, i;
-  va_list va;
 
-  va_start(va, qt);
-
-  for(i=0; i<qt; i++)
-    soma += sensor_sinal[va_arg(va, int)];
-
-  va_end(va);
-
-  media = soma/3;
-
-  return (media - sensor_sinal[l])/media; //se o valor do sensor for menor, entao ele dara uma subtracao positiva e dividindo pelo valor do maior vai dar a porcentagem desejada
-}
