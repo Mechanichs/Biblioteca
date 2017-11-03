@@ -64,6 +64,7 @@ typedef struct st_define{
   int delay_inicial;                 // 2000       // Define o tempo para o delay quando o sistema é ligado na energia.
   int tamanho_vetor;                 // 80         // Aproximadamente 3 interações por segundo.
   int tolerancia_potenciometro;      // 250        // Define o limite de erro do sinal do potenciometro.
+  unsigned short num_sensor;         // 4          // Numero de sensores usados. ~ (SENSOR SONORO)
   unsigned short num_interacao;      // 100        // Numero de interções no filtro linear.
   unsigned short nivel_limite;       // 180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
   unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
@@ -76,7 +77,7 @@ short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gra
 short  potenciometro_porta[NUM_SENSOR]  = {A0, A3, A5, A7};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
-int   vetor[init_tamanho_vetor()]       = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
+int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
 //int   tempo                             = 0;
 //int   key                               = 1;
@@ -437,6 +438,7 @@ void conf_padrao_def(void)//carrega a parte do eeprom(endereco 512) com a struct
   def.delay_inicial           = DELAY_INICIAL           ;
   def.tamanho_vetor           = TAMANHO_VETOR           ;
   def.tolerancia_potenciometro= TOLERANCIA_POTENCIOMETRO;
+  def.num_sensor              = NUM_SENSOR              ;
   def.num_interacao           = NUM_INTERACAO           ;
   def.nivel_limite            = NIVEL_LIMITE            ;
   def.tempo_sirene            = TEMPO_SIRENE            ;
@@ -551,14 +553,3 @@ float porcento_aux(int qt, int l, ...)
 
   return (media - sensor_sinal[l])/media; //se o valor do sensor for menor, entao ele dara uma subtracao positiva e dividindo pelo valor do maior vai dar a porcentagem desejada
 }
-
-int init_tamanho_vetor()
-{
-  t_define def;
-
-  EEPROM.get(512, def);
-
-  return def.tamanho_vetor;
-}
-
-
