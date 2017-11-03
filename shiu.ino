@@ -70,6 +70,22 @@ typedef struct st_define{
   unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
   unsigned short tempo_processamento;// 320
 }t_define
+#define DEBUG                    false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+#define DEBUG_TEMPO              false     
+#define MICROSD                  false     
+#define ZERAR                    1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
+#define PORCENT                  0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
+#define DELAY_HISTERESE          4          // Valor dado em segundos para depois do acionamento da sirene
+#define DELAY_BOTAO              200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
+#define DELAY_INICIAL            2000       // Define o tempo para o delay quando o sistema é ligado na energia.
+#define TAMANHO_VETOR            80         // Aproximadamente 10 interações por segundo.
+#define TOLERANCIA_POTENCIOMETRO 250 // Define o limite de erro do sinal do potenciometro.
+#define NUM_SENSOR               4          // Numero de sensores usados. ~ (SENSOR SONORO)
+#define NUM_INTERACAO            100        // Numero de interções no filtro linear.
+#define NIVEL_LIMITE             180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
+#define TEMPO_SIRENE             3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
+#define TEMPO_PROCESSAMENTO      320
+
 
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
@@ -421,6 +437,29 @@ void conf_padrao(void)//carrega a parte inicial do eeprom(endereco 0) com a stru
   }
 
   EEPROM.put(0, ep);
+}
+
+void conf_padrao_def(void)//carrega a parte inicial do eeprom(endereco 0) com a struct das informacoes do eeprom
+{                     //modifica todas as configuracoes para "configuracoes de fabrica"
+  t_define def;
+
+  def.debug                   = DEBUG                   ;
+  def.debug_tempo             = DEBUG_TEMPO             ;
+  def.microsd                 = MICROSD                 ;
+  def.zerar                   = ZERAR                   ;
+  def.porcent                 = PORCENT                 ;
+  def.delay_histerese         = DELAY_HISTERESE         ;
+  def.delay_botao             = DELAY_BOTAO             ;
+  def.delay_inicial           = DELAY_INICIAL           ;
+  def.tamanho_vetor           = TAMANHO_VETOR           ;
+  def.tolerancia_potenciometro= TOLERANCIA_POTENCIOMETRO;
+  def.num_sensor              = NUM_SENSOR              ;
+  def.num_interacao           = NUM_INTERACAO           ;
+  def.nivel_limite            = NIVEL_LIMITE            ;
+  def.tempo_sirene            = TEMPO_SIRENE            ;
+  def.tempo_processamento     = TEMPO_PROCESSAMENTO     ;
+
+  EEPROM.put(0, def);
 }
 
 void mod_tolerancia(char c) //modificar_tolerancia [funcao auxiliar eeprom]
