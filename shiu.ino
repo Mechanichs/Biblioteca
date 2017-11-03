@@ -509,6 +509,16 @@ void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de u
         else
           sensor_status[i] = true;
 
+  int mais_alto=0, i_mais_alto;
+
+  for(i=0; i<NUM_SENSOR; i++)
+    if(mais_alto < sensor_sinal[i])
+      i_mais_alto = i;
+  
+  for(i=0; i<NUM_SENSOR; i++)
+    if(porcento_aux(1,i,i_mais_alto) >= 0.65 )
+      sensor_status = false;
+  
   for(i=0; i<NUM_SENSOR; i++)
     if(ep.sensor_chave[i]==false || sensor_status[i]==false)
     {
