@@ -123,7 +123,7 @@ void setup()
   EEPROM.get(0, ep);
 
   if(microsd)
-    abrir_sd();
+    microsd = abrir_sd();
 
   /* pinMode's */
   pinMode(LED, OUTPUT);
@@ -607,14 +607,13 @@ void chave_sd(void)
         delay(DELAY_AVISO); // para o print da tela
       }
       else if(microsd==false)
-      {
-        microsd=true;
-        abrir_sd();
-      }
+        microsd = abrir_sd();
 }
 
-void abrir_sd()
+bool abrir_sd(void)
 {  
+  bool status;
+
   SD.begin(10);
   
   arq = SD.open("texto.txt", FILE_WRITE);
@@ -627,13 +626,16 @@ void abrir_sd()
     arq.println("Teste de arquivos TXT em SD no Arduino");
     Serial.println("OK.");
     lcd.println("Arquivo aberto");
+    status = true;
   }
   else {
     Serial.println("Erro ao abrir ou criar o arquivo texto.txt.");
     lcd.println("Erro ao abrir");
+    status = false;
   }
   delay(DELAY_AVISO); // para o print da tela
   
+  return status;
 }
 
 
