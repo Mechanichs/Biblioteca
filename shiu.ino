@@ -22,6 +22,10 @@
 #define LED               10         
 #define SIRENE            11         // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
 #define LAMPADA           12       
+#define BOTAO_MENU        6
+#define BOTAO_DOWN        7
+#define BOTAO_UP          8
+#define BOTAO_CHANGE      9
 #define NIVEL_LIMITE      180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
@@ -119,24 +123,7 @@ void setup()
   EEPROM.get(0, ep);
 
   if(microsd)
-  {
-    SD.begin(10);
-
-    arq = SD.open("texto.txt", FILE_WRITE);
-  
-    lcd.setCursor(0, 0); // posicionamento primeira linha
-
-    if(arq) {
-      arq.println("Teste de arquivos TXT em SD no Arduino");
-      Serial.println("OK.");
-      lcd.println("Arquivo aberto");
-    }
-    else {
-      Serial.println("Erro ao abrir ou criar o arquivo texto.txt.");
-      lcd.println("Erro ao abrir");
-    }
-    delay(DELAY_AVISO); // para o print da tela
-  }
+    abrir_sd();
 
   /* pinMode's */
   pinMode(LED, OUTPUT);
@@ -168,6 +155,8 @@ void loop()
     sirene(); // alarme -> zerar vetor -> delay
   //else // caso não o sirene...
   menu_iniciar(); // volta para o incicio (o display mostrando os valores atuais - recebido pelos sensores)
+
+  chave_sd();
 
   if(debug_tempo)
   {
@@ -605,5 +594,47 @@ void desligar_menor(t_eeprom ep)
       sensor_status[escolha]=false;
   }
 }
+
+void chave_sd(void)
+{
+  if(digitalRead(BOTAO_MENU))
+    if(digitalRead(BOTAO_CHANGE))
+      if(microsd==true)
+      {
+        microsd=false;
+        SD.close(arq);
+        lcd.print("SD encerrado");
+        delay(DELAY_AVISO); // para o print da tela
+      }
+      else if(microsd==false)
+      {
+        microsd=true;
+        abrir_sd();
+      }
+}
+
+void abrir_sd()
+{  
+  SD.begin(10);
+  
+  arq = SD.open("texto.txt", FILE_WRITE);
+  
+  lcd.clear();
+  
+  lcd.setCursor(0, 0); // posicionamento primeira linha
+
+  if(arq) {
+    arq.println("Teste de arquivos TXT em SD no Arduino");
+    Serial.println("OK.");
+    lcd.println("Arquivo aberto");
+  }
+  else {
+    Serial.println("Erro ao abrir ou criar o arquivo texto.txt.");
+    lcd.println("Erro ao abrir");
+  }
+  delay(DELAY_AVISO); // para o print da tela
+  
+}
+
 
 
