@@ -14,6 +14,7 @@
 #define DELAY_DISPLAY     80         // Define o tempo de espera para o delay do display evitando que a tela fique piscando.
 #define DELAY_INICIAL     2000       // Define o tempo para o delay quando o sistema é ligado na energia.
 #define TAMANHO_VETOR     80         // Aproximadamente 10 interações por segundo.
+#define TAMANHO_VETOR_MAX 130        // Aproximadamente 10 interações por segundo.
 #define NUM_SENSOR        4          // Numero de sensores usados. ~ (SENSOR SONORO)
 #define NUM_INTERACAO     100        // Numero de interções no filtro linear.
 #define NUM_REPETICAO     2          // Quantidade de vezes que a sirene irá disparar.
@@ -49,27 +50,34 @@ RJ11: GND(preto), Vcc(vermelho), OUT(verde), Pot(amarelo)
 typedef struct st_eeprom{
   int contador;
   int tolerancia;
+  int tolerancia_potenciometro;      // 250        // Define o limite de erro do sinal do potenciometro.
   bool sensor_chave[NUM_SENSOR];        
   short potenciometro_ideal[NUM_SENSOR];
+  float delay_histerese;             // 4          // Valor dado em segundos para depois do acionamento da sirene. [Em Segundos]
+  unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
 }t_eeprom;
 
 typedef struct st_define{
   bool debug_serial;                 // false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
   bool debug_tempo;                  // false     
   bool microsd;                      // false     
-  bool zerar;                        // 1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
   float porcent;                     // 0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
-  float delay_histerese;             // 4          // Valor dado em segundos para depois do acionamento da sirene. [Em Segundos]
   int delay_botao;                   // 200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
-  int delay_inicial;                 // 2000       // Define o tempo para o delay quando o sistema é ligado na energia.
   int tamanho_vetor;                 // 80         // Aproximadamente 3 interações por segundo.
-  int tolerancia_potenciometro;      // 250        // Define o limite de erro do sinal do potenciometro.
-  unsigned short num_sensor;         // 4          // Numero de sensores usados. ~ (SENSOR SONORO)
   unsigned short num_interacao;      // 100        // Numero de interções no filtro linear.
-  unsigned short nivel_limite;       // 180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
-  unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
   unsigned short tempo_processamento;// 320
 }t_define;
+
+//#### Para as variaveis do define - inicio ####
+bool debug_serial;                 // false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
+bool debug_tempo;                  // false     
+bool microsd;                      // false     
+float porcent;                     // 0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
+int delay_botao;                   // 200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
+int tamanho_vetor;                 // 80         // Aproximadamente 3 interações por segundo.
+unsigned short num_interacao;      // 100        // Numero de interções no filtro linear.
+unsigned short tempo_processamento;// 320
+//#### Para as variaveis do define - fim ####
 
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
@@ -77,11 +85,9 @@ short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gra
 short  potenciometro_porta[NUM_SENSOR]  = {A0, A3, A5, A7};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
-int   vetor[TAMANHO_VETOR]              = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
+int   vetor[TAMANHO_VETOR_MAX]          = {};    // Vetor responsável por guardar os ultimos TAMANHO_VETOR's níveis de ruído
 int   media_total                       = 0;     // Valor medio do vetor de valores    EVITANDO LIXO
-//int   tempo                             = 0;
-//int   key                               = 1;
-int   contador                          = 0;    //Permite trocar apenas o valor mais antigo do vetor. Usado em adicionar_vetor().
+int   posicao                           = 0;    //Permite trocar apenas o valor mais antigo do vetor. Usado em adicionar_vetor().
 long unsigned time1, time2; //variaveis de apoio para calcular o delta tempo
 int resp1, resp2;   //variaveis responsaveis por conter o delta tempo
 
@@ -103,11 +109,12 @@ void setup()
   if(DEBUG_SERIAL) 
     Serial.begin(9600);
 
+  conf_padrao_def();
+  init_def();
+    
   if(ZERAR)
     clear_eeprom();
 
-  conf_padrao_def();
-    
   EEPROM.get(0, ep);
 
   if(MICROSD)
@@ -304,11 +311,11 @@ void adicionar_vetor(void) // preencher o vetor com cada endereço a media_sala 
 {
   verificar_intervalo();
 
-  vetor[contador] = media_sala(); //com o contador ele sempre modificara a ultima analise feita, preservando assim os dados mais recentes
+  vetor[posicao] = media_sala(); //com a posicao ele sempre modificara a ultima analise feita, preservando assim os dados mais recentes
 
-  contador++;
-  if(contador==TAMANHO_VETOR)
-    contador=0; //zera o contador quando ele passa do limite do tamanho do vetor
+  posicao++;
+  if(posicao==TAMANHO_VETOR)
+    posicao=0; //zera a posicao quando ele passa do limite do tamanho do vetor
 }
 
 void ordenamento_bolha(int num[])   //metodo de ordenamento decrescente de bolha para melhor utilizar a porcentagem na funcao media_vetor
@@ -354,6 +361,10 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
 
 void sirene(void)
 {
+  t_eeprom ep;
+
+  EEPROM.get(0, ep);
+
   if(DEBUG_SERIAL)
     Serial.println("SIRENE ATIVA!!!");
   if(MICROSD)
@@ -363,7 +374,7 @@ void sirene(void)
   lcd.print("Sirene!!!");
 
   digitalWrite(SIRENE, HIGH);
-  delay(TEMPO_SIRENE*1000);
+  delay(ep.tempo_sirene*1000);
   digitalWrite(SIRENE, LOW);
 
   lcd.clear(); // importante
@@ -373,7 +384,7 @@ void sirene(void)
   zerar_vetor();
   adicionar_contador();
 
-  delay(DELAY_HISTERESE*1000);
+  delay(ep.delay_histerese*1000);
 }
 
 void zerar_vetor(void) // uma vez passado o limite, zerar o vetor com as medidas da sala e começar a preencher novamente
@@ -414,6 +425,9 @@ void conf_padrao(void)//carrega a parte inicial do eeprom(endereco 0) com a stru
 
   ep.contador=0;
   ep.tolerancia = NIVEL_LIMITE;
+  ep.tempo_sirene = TEMPO_SIRENE;
+  ep.delay_histerese = DELAY_HISTERESE;
+  ep.tolerancia_potenciometro = TOLERANCIA_POTENCIOMETRO;
 
   for(int i=0; i<NUM_SENSOR; i++)
   {
@@ -428,23 +442,33 @@ void conf_padrao_def(void)//carrega a parte do eeprom(endereco 512) com a struct
 {                     //modifica todas as configuracoes para "configuracoes de fabrica"
   t_define def;
 
-  def.debug_serial            = DEBUG_SERIAL            ;
-  def.debug_tempo             = DEBUG_TEMPO             ;
-  def.microsd                 = MICROSD                 ;
-  def.zerar                   = ZERAR                   ;
-  def.porcent                 = PORCENT                 ;
-  def.delay_histerese         = DELAY_HISTERESE         ;
-  def.delay_botao             = DELAY_BOTAO             ;
-  def.delay_inicial           = DELAY_INICIAL           ;
-  def.tamanho_vetor           = TAMANHO_VETOR           ;
-  def.tolerancia_potenciometro= TOLERANCIA_POTENCIOMETRO;
-  def.num_sensor              = NUM_SENSOR              ;
-  def.num_interacao           = NUM_INTERACAO           ;
-  def.nivel_limite            = NIVEL_LIMITE            ;
-  def.tempo_sirene            = TEMPO_SIRENE            ;
-  def.tempo_processamento     = TEMPO_PROCESSAMENTO     ;
+  def.debug_serial  = DEBUG_SERIAL;
+  def.debug_tempo = DEBUG_TEMPO;
+  def.microsd = MICROSD;
+  def.porcent = PORCENT;
+  def.delay_botao = DELAY_BOTAO;
+  def.tamanho_vetor = TAMANHO_VETOR;
+  def.num_interacao = NUM_INTERACAO;
+  def.tempo_processamento = TEMPO_PROCESSAMENTO;
 
   EEPROM.put(512, def);
+}
+
+void init_def(void);
+{
+  t_define def;
+
+  EEPROM.get(512, def);
+
+  debug_serial  = def.debug_serial;
+  debug_tempo = def.debug_tempo;
+  microsd = def.microsd;
+  porcent = def.porcent;
+  delay_botao = def.delay_botao;
+  tamanho_vetor = def.tamanho_vetor;
+  num_interacao = def.num_interacao;
+  tempo_processamento = def.tempo_processamento;
+
 }
 
 void mod_tolerancia(char c) //modificar_tolerancia [funcao auxiliar eeprom]
@@ -542,7 +566,7 @@ void intervalo_pot(t_eeprom ep)
 
   for(i=0; i<NUM_SENSOR; i++)
     if(ep.sensor_chave[i])
-      if( potenciometro_sinal[i] > (ep.potenciometro_ideal[i] + TOLERANCIA_POTENCIOMETRO)  || potenciometro_sinal[i] < (ep.potenciometro_ideal[i] - TOLERANCIA_POTENCIOMETRO))
+      if( potenciometro_sinal[i] > (ep.potenciometro_ideal[i] + ep.tolerancia_potenciometro)  || potenciometro_sinal[i] < (ep.potenciometro_ideal[i] - ep.tolerancia_potenciometro))
         sensor_status[i]=false;
       else
         sensor_status[i] = true;
