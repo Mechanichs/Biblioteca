@@ -109,11 +109,12 @@ void setup()
   if(debug_serial) 
     Serial.begin(9600);
 
-  conf_padrao_def();
-  init_def();
-    
-  if(ZERAR)
+  if(ZERAR){
+    conf_padrao_def();
     clear_eeprom();
+  }
+
+  init_def();
 
   EEPROM.get(0, ep);
 
