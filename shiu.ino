@@ -454,7 +454,7 @@ void conf_padrao_def(void)//carrega a parte do eeprom(endereco 512) com a struct
   EEPROM.put(512, def);
 }
 
-void init_def(void);
+void init_def(void)
 {
   t_define def;
 
