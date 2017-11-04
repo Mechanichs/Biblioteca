@@ -122,6 +122,8 @@ void setup()
 
   EEPROM.get(0, ep);
 
+  //SD.begin(10);
+  
   if(microsd)
     microsd = abrir_sd();
 
@@ -614,8 +616,6 @@ bool abrir_sd(void)
 {  
   bool status;
 
-  SD.begin(10);
-  
   arq = SD.open("texto.txt", FILE_WRITE);
   
   lcd.clear();
