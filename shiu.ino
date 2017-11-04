@@ -106,7 +106,7 @@ void setup()
 
   lcd.begin(16, 2);
  
-  if(DEBUG_SERIAL) 
+  if(debug_serial) 
     Serial.begin(9600);
 
   conf_padrao_def();
@@ -117,7 +117,7 @@ void setup()
 
   EEPROM.get(0, ep);
 
-  if(MICROSD)
+  if(microsd)
   {
     SD.begin(10);
 
@@ -155,7 +155,7 @@ void setup()
 
 void loop()
 {
-  if(DEBUG_TEMPO)     //Debug usado para descobrir o tempo de utilizacao de processamento do programa
+  if(debug_tempo)     //Debug usado para descobrir o tempo de utilizacao de processamento do programa
     time1 = millis();
 
   /* Primeiro passo */
@@ -168,32 +168,32 @@ void loop()
   //else // caso não o sirene...
   menu_iniciar(); // volta para o incicio (o display mostrando os valores atuais - recebido pelos sensores)
 
-  if(DEBUG_TEMPO)
+  if(debug_tempo)
   {
     resp1 = millis() - time1;
-    if(DEBUG_SERIAL)
+    if(debug_serial)
     {
       Serial.print("> Temp Loop: ");
       Serial.println(resp1);
     }
-    if(MICROSD)
+    if(microsd)
     {
       arq.print("> Temp Loop: ");
       arq.println(resp1);
     }
     //lcd.print(resp1);
   }
-  while(millis()-time1 < TEMPO_PROCESSAMENTO)
+  while(millis()-time1 < tempo_processamento)
     delay(1);
-  if(DEBUG_TEMPO)
+  if(debug_tempo)
   {
     resp1 = millis() - time1;
-    if(DEBUG_SERIAL)
+    if(debug_serial)
     {
       Serial.print("> Temp Loop Final: ");
       Serial.println(resp1);
     } 
-    if(MICROSD)
+    if(microsd)
     {
       arq.print("> Temp Loop Final: ");
       arq.println(resp1);
@@ -209,39 +209,39 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
   {
     lcd.setCursor(i*4, 0); // posicionamento primeira linha
     lcd.print(sensor_sinal[i]); // sinal = porta
-    if(DEBUG_SERIAL) 
+    if(debug_serial) 
     {
       Serial.print(sensor_sinal[i]); // sinal = porta
       Serial.print("     "); // posicionamento primeira linha
     }
-    if(MICROSD)
+    if(microsd)
     {
       arq.print(sensor_sinal[i]);
       arq.print("     "); // posicionamento primeira linha
     }
   }
-    if(DEBUG_SERIAL) 
+    if(debug_serial) 
       Serial.println("");
-    if(MICROSD)
+    if(microsd)
       arq.println("");
   for(int i = 0; i < NUM_SENSOR; i++)
   {
     lcd.setCursor(i*4, 1); // posicionamento primeira linha
     lcd.print(potenciometro_sinal[i]); // sinal = porta
-    if(DEBUG_SERIAL)
+    if(debug_serial)
     {
       Serial.print(potenciometro_sinal[i]); // sinal = porta
       Serial.print("     "); // posicionamento segunda linha 
     }
-    if(MICROSD)
+    if(microsd)
     {
       arq.print(potenciometro_sinal[i]); // sinal = porta
       arq.print("     "); // posicionamento segunda linha 
     }
   }
-  if(DEBUG_SERIAL) 
+  if(debug_serial) 
     Serial.println("");
-  if(MICROSD)
+  if(microsd)
     arq.println("");
 }
 /* ----- Começando aqui após o INÍCIO ----- */
@@ -257,7 +257,7 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
   for(i = 0; i< NUM_SENSOR ; i++)
     soma[i] = 0;
 
-  for(i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
+  for(i = 0; i< num_interacao ; i++)    //permitindo assim uma maior percisao do dado recebido
     for(j = 0; j< NUM_SENSOR ; j++)
       if(ep.sensor_chave[j])
         soma[j] += analogRead(sensor_porta[j]);              //ou seja, ele e a "propria leitura do sensor"
@@ -265,7 +265,7 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
   for(i = 0; i< NUM_SENSOR ; i++)
   {
     potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);    //segundo verifiquei, o potenciometro so esta no codigo para ser impresso
-    sensor_sinal[i] = soma[i]/NUM_INTERACAO;
+    sensor_sinal[i] = soma[i]/num_interacao;
   }
 
   return;
@@ -293,17 +293,17 @@ int media_sala(void) // media sala(no momento). Ele permite retornar uma media a
 int media_vetor(void) // media sala(no momento). Retorna uma media aritimetica das medidas recolhidas durante cerca de 9 segundos(ainda precisa averiguar esse tempo)
 {
   unsigned long soma = 0;   //tambem pode despresar uma porcentagem do vetor. O despreso vem de algumas medicoes mais baixas
-  int nun[TAMANHO_VETOR];   //ou seja, ele ignora uma certa quantidade de valores mais baixos do sistema
+  int nun[tamanho_vetor];   //ou seja, ele ignora uma certa quantidade de valores mais baixos do sistema
   //>>A utilidade dele ainda deve ser analisada como uma arrastar de uma cadeira
-  for(int i=0; i<TAMANHO_VETOR; i++)
+  for(int i=0; i<tamanho_vetor; i++)
     nun[i]=vetor[i];
 
   ordenamento_bolha(nun);
 
-  for(int i = 0; i < TAMANHO_VETOR - (int)TAMANHO_VETOR * PORCENT; i++)
+  for(int i = 0; i < tamanho_vetor - (int)tamanho_vetor * porcent; i++)
     soma += nun[i];
 
-  return soma/(TAMANHO_VETOR - (int)TAMANHO_VETOR * PORCENT);
+  return soma/(tamanho_vetor - (int)tamanho_vetor * porcent);
 }
 
 /* Reviveu kkkk */
@@ -314,15 +314,15 @@ void adicionar_vetor(void) // preencher o vetor com cada endereço a media_sala 
   vetor[posicao] = media_sala(); //com a posicao ele sempre modificara a ultima analise feita, preservando assim os dados mais recentes
 
   posicao++;
-  if(posicao==TAMANHO_VETOR)
+  if(posicao==tamanho_vetor)
     posicao=0; //zera a posicao quando ele passa do limite do tamanho do vetor
 }
 
 void ordenamento_bolha(int num[])   //metodo de ordenamento decrescente de bolha para melhor utilizar a porcentagem na funcao media_vetor
 {                                   //com o vetor ordenado de forma decrescente fica possivel simplesmente ignorar as ultimas informacoes do vetor ao calcular a media
   int x, y, aux;
-  for( x = 0; x < TAMANHO_VETOR; x++ )
-    for( y = x + 1; y < TAMANHO_VETOR; y++ ) // sempre 1 elemento à frente
+  for( x = 0; x < tamanho_vetor; x++ )
+    for( y = x + 1; y < tamanho_vetor; y++ ) // sempre 1 elemento à frente
       if ( num[y] > num[x] )
       {
         aux = num[y];
@@ -337,12 +337,12 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
 
   EEPROM.get(0, ep);
   media_total = media_vetor();  //simplificado com a criacao da funcao media vetor
-  if(DEBUG_SERIAL)
+  if(debug_serial)
   {
     Serial.print("media vetor: ");
     Serial.println(media_vetor());
   }
-  if(MICROSD)
+  if(microsd)
   {
     arq.print("media vetor: ");
     arq.println(media_vetor());
@@ -365,9 +365,9 @@ void sirene(void)
 
   EEPROM.get(0, ep);
 
-  if(DEBUG_SERIAL)
+  if(debug_serial)
     Serial.println("SIRENE ATIVA!!!");
-  if(MICROSD)
+  if(microsd)
     arq.println("SIRENE ATIVA!!!");
   lcd.clear(); // importante
   lcd.setCursor(0, 0);
@@ -389,7 +389,7 @@ void sirene(void)
 
 void zerar_vetor(void) // uma vez passado o limite, zerar o vetor com as medidas da sala e começar a preencher novamente
 {
-  for(int i = 0; i< TAMANHO_VETOR; i++)
+  for(int i = 0; i< tamanho_vetor; i++)
     vetor[i] = 0;
 }
 
