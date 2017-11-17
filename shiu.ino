@@ -52,7 +52,7 @@ typedef struct st_eeprom{
   bool sensor_chave[NUM_SENSOR];        
   short potenciometro_ideal[NUM_SENSOR];
 }t_eeprom;
-
+/*
 typedef struct st_define{
   bool debug_serial;                 // false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
   bool debug_tempo;                  // false     
@@ -70,7 +70,7 @@ typedef struct st_define{
   unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
   unsigned short tempo_processamento;// 320
 }t_define;
-
+*/
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
@@ -106,7 +106,7 @@ void setup()
   if(ZERAR)
     clear_eeprom();
 
-  conf_padrao_def();
+  //conf_padrao_def();
     
   EEPROM.get(0, ep);
 
@@ -430,7 +430,7 @@ void conf_padrao(void)//carrega a parte inicial do eeprom(endereco 0) com a stru
 
   EEPROM.put(0, ep);
 }
-
+/*
 void conf_padrao_def(void)//carrega a parte do eeprom(endereco 512) com a struct das informacoes dos define's
 {                     //modifica todas as configuracoes para "configuracoes de fabrica"
   t_define def;
@@ -453,7 +453,7 @@ void conf_padrao_def(void)//carrega a parte do eeprom(endereco 512) com a struct
 
   EEPROM.put(512, def);
 }
-
+*/
 void mod_tolerancia(char c) //modificar_tolerancia [funcao auxiliar eeprom]
 {
   t_eeprom ep;
