@@ -262,79 +262,115 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
   {
     potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);    //segundo verifiquei, o potenciometro so esta no codigo para ser impresso
     sensor_sinal[i] = soma[i]/NUM_INTERACAO;
+    }
+
+    return;
   }
+void calibra(void)
+{
+  int j,i,maior=0, sens;
+  short int valores[4][200];
+  int soma=0;
+  int medaux,med;
+
+  for(i=0;i<4;i++)
+  {
+    if(sensor_sinal[i]> maior)
+    {
+      maior=sensor_sinal[i];
+      sens=i;
+    }
+   }
+   
+  for(i=0;i<4;i++)
+    if(i == sens)
+    {
+      soma=0;
+      for(j=0;j <200;j++)
+      {
+        soma+=analogRead(sensor_porta[i]);
+        medaux=soma/200;
+        if(medaux >med)
+        {
+          med=medaux
+          valores[i]= med;     
+        }
+      }   
+    }
 
   return;
 }
 
+
+
 int media_sala(void) // media sala(no momento). Ele permite retornar uma media aritimetica dos valores dos sensores espalhados pela sala no momento da medicao
-{
-  int j=0;
-  unsigned long soma = 0;
-  t_eeprom ep;
-
-  EEPROM.get(0, ep);
-
-  for(int i = 0; i < NUM_SENSOR; i++)
-    if(ep.sensor_chave[i])
-      if(sensor_status[i])
-      {
-        soma += sensor_sinal[i];
-        j++;
-      }
-
-  return soma/j;
-}
-
-int media_vetor(void) // media sala(no momento). Retorna uma media aritimetica das medidas recolhidas durante cerca de 9 segundos(ainda precisa averiguar esse tempo)
-{
-  unsigned long soma = 0;   //tambem pode despresar uma porcentagem do vetor. O despreso vem de algumas medicoes mais baixas
-  int nun[TAMANHO_VETOR];   //ou seja, ele ignora uma certa quantidade de valores mais baixos do sistema
-  //>>A utilidade dele ainda deve ser analisada como uma arrastar de uma cadeira
-  for(int i=0; i<TAMANHO_VETOR; i++)
-    nun[i]=vetor[i];
-
-  ordenamento_bolha(nun);
-
-  for(int i = 0; i < TAMANHO_VETOR - (int)TAMANHO_VETOR * PORCENT; i++)
-    soma += nun[i];
-
-  return soma/(TAMANHO_VETOR - (int)TAMANHO_VETOR * PORCENT);
-}
-
-/* Reviveu kkkk */
-void adicionar_vetor(void) // preencher o vetor com cada endereço a media_sala daquele respectivo momento, e sempre atualizando a cada nova interação
-{
-  verificar_intervalo();
-
-  vetor[contador] = media_sala(); //com o contador ele sempre modificara a ultima analise feita, preservando assim os dados mais recentes
-
-  contador++;
-  if(contador==TAMANHO_VETOR)
-    contador=0; //zera o contador quando ele passa do limite do tamanho do vetor
-}
-
-void ordenamento_bolha(int num[])   //metodo de ordenamento decrescente de bolha para melhor utilizar a porcentagem na funcao media_vetor
-{                                   //com o vetor ordenado de forma decrescente fica possivel simplesmente ignorar as ultimas informacoes do vetor ao calcular a media
-  int x, y, aux;
-  for( x = 0; x < TAMANHO_VETOR; x++ )
-    for( y = x + 1; y < TAMANHO_VETOR; y++ ) // sempre 1 elemento à frente
-      if ( num[y] > num[x] )
-      {
-        aux = num[y];
-        num[y] = num[x];
-        num[x] = aux;
-      }
-}
-
-bool analisar_barulho(void) // decide se vai acionar ou nao...      
-{
-  t_eeprom ep;
-
-  EEPROM.get(0, ep);
-  media_total = media_vetor();  //simplificado com a criacao da funcao media vetor
-  if(DEBUG_SERIAL)
   {
+    int j=0;
+    unsigned long soma = 0;
+    t_eeprom ep;
+
+    EEPROM.get(0, ep);
+
+    for(int i = 0; i < NUM_SENSOR; i++)
+      if(ep.sensor_chave[i])
+        if(sensor_status[i])
+        {
+          soma += sensor_sinal[i];
+          j++;
+        }
+
+    return soma/j;
+  }
+
+  int media_vetor(void) // media sala(no momento). Retorna uma media aritimetica das medidas recolhidas durante cerca de 9 segundos(ainda precisa averiguar esse tempo)
+  {
+    unsigned long soma = 0;   //tambem pode despresar uma porcentagem do vetor. O despreso vem de algumas medicoes mais baixas
+    int nun[TAMANHO_VETOR];   //ou seja, ele ignora uma certa quantidade de valores mais baixos do sistema
+    //>>A utilidade dele ainda deve ser analisada como uma arrastar de uma cadeira
+    for(int i=0; i<TAMANHO_VETOR; i++)
+      nun[i]=vetor[i];
+
+    ordenamento_bolha(nun);
+
+    for(int i = 0; i < TAMANHO_VETOR - (int)TAMANHO_VETOR * PORCENT; i++)
+      soma += nun[i];
+
+    return soma/(TAMANHO_VETOR - (int)TAMANHO_VETOR * PORCENT);
+  }
+
+  /* Reviveu kkkk */
+  void adicionar_vetor(void) // preencher o vetor com cada endereço a media_sala daquele respectivo momento, e sempre atualizando a cada nova interação
+  {
+    verificar_intervalo();
+
+    vetor[contador] = media_sala(); //com o contador ele sempre modificara a ultima analise feita, preservando assim os dados mais recentes
+
+    contador++;
+    if(contador==TAMANHO_VETOR)
+      contador=0; //zera o contador quando ele passa do limite do tamanho do vetor
+  }
+
+  void ordenamento_bolha(int num[])   //metodo de ordenamento decrescente de bolha para melhor utilizar a porcentagem na funcao media_vetor
+  {                                   //com o vetor ordenado de forma decrescente fica possivel simplesmente ignorar as ultimas informacoes do vetor ao calcular a media
+    int x, y, aux;
+    for( x = 0; x < TAMANHO_VETOR; x++ )
+      for( y = x + 1; y < TAMANHO_VETOR; y++ ) // sempre 1 elemento à frente
+        if ( num[y] > num[x] )
+        {
+          aux = num[y];
+          num[y] = num[x];
+          num[x] = aux;
+        }
+  }
+
+  bool analisar_barulho(void) // decide se vai acionar ou nao...      
+  {
+    t_eeprom ep;
+
+    EEPROM.get(0, ep);
+    media_total = media_vetor();  //simplificado com a criacao da funcao media vetor
+    if(DEBUG_SERIAL)
+    {
     Serial.print("media vetor: ");
     Serial.println(media_vetor());
   }
