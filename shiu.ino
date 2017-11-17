@@ -25,6 +25,7 @@
 #define TEMPO_SIRENE      3          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
 #define TEMPO_PROCESSAMENTO 320
+#define TEMPO_CALIBRAGEM  90         //tempo dado em segundos
 
 /*
 ####   EPROM   ####
@@ -268,35 +269,38 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
   }
 void calibra(void)
 {
-  int j,i,maior=0, sens;
-  short int valores[4][200];
-  int soma=0;
-  int medaux,med;
+  int j, i, maior, sens, med;
+  short int valores[4];
+  unsigned int soma=0;
+  unsigned int tempo_inicial;
 
-  for(i=0;i<4;i++)
+  tempo_inicial = millis();
+
+  while(millis() - tempo_inicial < TEMPO_CALIBRAGEM*1000)
   {
-    if(sensor_sinal[i]> maior)
+    maior = 0;
+    for(i=0;i<4;i++)
     {
-      maior=sensor_sinal[i];
-      sens=i;
-    }
-   }
-   
-  for(i=0;i<4;i++)
-    if(i == sens)
-    {
-      soma=0;
-      for(j=0;j <200;j++)
+      if(sensor_sinal[i]> maior)
       {
-        soma+=analogRead(sensor_porta[i]);
-        medaux=soma/200;
-        if(medaux >med)
-        {
-          med=medaux
-          valores[i]= med;     
-        }
-      }   
+        maior=sensor_sinal[i];
+        sens=i;
+      }
     }
+     
+    soma=0;
+    
+    for(j=0;j <1000;j++)
+    {
+      soma+=analogRead(sensor_porta[sens]);
+      delay(1);
+    }
+
+    med=soma/200;
+
+    if(med > valores[sens])
+      valores[sens] = med;
+  }
 
   return;
 }
