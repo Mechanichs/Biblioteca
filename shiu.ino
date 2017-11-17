@@ -75,6 +75,7 @@ typedef struct st_define{
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
+short  sensor_max[NUM_SENSOR];
 short  potenciometro_porta[NUM_SENSOR]  = {A0, A3, A5, A7};         // Responsáveis por gravar saida do potenciometro
 short  potenciometro_sinal[NUM_SENSOR]  = {};           // Potenciometros ligados às portas analógicas
 
@@ -145,6 +146,8 @@ void setup()
   EEPROM.put(0, ep);
 
   zerar_vetor(); //zera o vetor para nao haver complicacoes nas primeiras medias realizadas
+
+  calibra();
 }
 
 void loop()
@@ -262,15 +265,16 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
   for(i = 0; i< NUM_SENSOR ; i++)
   {
     potenciometro_sinal[i] = analogRead(potenciometro_porta[i]);    //segundo verifiquei, o potenciometro so esta no codigo para ser impresso
-    sensor_sinal[i] = soma[i]/NUM_INTERACAO;
-    }
+    j = soma[i]/NUM_INTERACAO;
+    sensor_sinal[i] = 1000*(j/sensor_max[i]);
+  }
 
     return;
-  }
+}
+
 void calibra(void)
 {
   int j, i, maior, sens, med;
-  short int valores[4];
   unsigned int soma=0;
   unsigned int tempo_inicial;
 
@@ -298,14 +302,12 @@ void calibra(void)
 
     med=soma/200;
 
-    if(med > valores[sens])
-      valores[sens] = med;
+    if(med > sensor_max[sens])
+      sensor_max[sens] = med;
   }
 
   return;
 }
-
-
 
 int media_sala(void) // media sala(no momento). Ele permite retornar uma media aritimetica dos valores dos sensores espalhados pela sala no momento da medicao
   {
