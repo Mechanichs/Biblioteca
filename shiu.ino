@@ -33,7 +33,7 @@
 ## Enderecos X Conteudo ##
 0 - Struct com os dados as variaveis utilizadas no eeprom
 512 - Struct com os dados as variaveis utilizadas no define
-*/
+ */
 
 /*
 #### Portas ####
@@ -46,7 +46,7 @@ LCD: (5, 4, 3, 2, 0, 1)
 MicroSD: 13(SCK), 12(MISO), 11(MOSI), 10(CS)
 Botoes: D6(menu), D7(down), D8(up), D9(change)
 RJ11: GND(preto), Vcc(vermelho), OUT(verde), Pot(amarelo)
-*/
+ */
 
 typedef struct st_eeprom{
   int contador;
@@ -54,25 +54,7 @@ typedef struct st_eeprom{
   bool sensor_chave[NUM_SENSOR];        
   short potenciometro_ideal[NUM_SENSOR];
 }t_eeprom;
-/*
-typedef struct st_define{
-  bool debug_serial;                 // false      // Ativar(1) ou desativar(0) a comunicação com o serial.    *FALTA
-  bool debug_tempo;                  // false     
-  bool microsd;                      // false     
-  bool zerar;                        // 1          // (1) zera o EEPROM (0) mantem o EEPROM com leituras anteriores.
-  float porcent;                     // 0.2        // Define a porcentagem de medicoes despresadas na media_vetor().
-  float delay_histerese;             // 4          // Valor dado em segundos para depois do acionamento da sirene. [Em Segundos]
-  int delay_botao;                   // 200        // Define o tempo de espera para o delay do erro humano em relação aos botões. ~ (FUNÇÃO BOTÃO)    *FALTA
-  int delay_inicial;                 // 2000       // Define o tempo para o delay quando o sistema é ligado na energia.
-  int tamanho_vetor;                 // 80         // Aproximadamente 3 interações por segundo.
-  int tolerancia_potenciometro;      // 250        // Define o limite de erro do sinal do potenciometro.
-  unsigned short num_sensor;         // 4          // Numero de sensores usados. ~ (SENSOR SONORO)
-  unsigned short num_interacao;      // 100        // Numero de interções no filtro linear.
-  unsigned short nivel_limite;       // 180        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
-  unsigned short tempo_sirene;       // 3          // Define o tempo de duração em que o sinalizador permanecerá ativo. [Em segundos] 
-  unsigned short tempo_processamento;// 320
-}t_define;
-*/
+
 bool  sensor_status[NUM_SENSOR];        
 short  sensor_porta[NUM_SENSOR]         = {A1, A2, A4, A6};         // Sensores ligados às portas analógicas
 short  sensor_sinal[NUM_SENSOR]         = {};           // Responsáveis por gravar saida do sensor
@@ -97,19 +79,19 @@ LiquidCrystal lcd(5, 4, 3, 2, 0, 1); //NANO é 0, 1
 void setup()
 {
   delay(DELAY_INICIAL); // sistema é ligado na energia
-  
+
   t_eeprom ep; 
 
   lcd.begin(16, 2);
- 
+
   if(DEBUG_SERIAL) 
     Serial.begin(9600);
 
   if(ZERAR)
     clear_eeprom();
 
-//  conf_padrao_def();
-    
+  //  conf_padrao_def();
+
   EEPROM.get(0, ep);
 
   if(MICROSD)
@@ -117,7 +99,7 @@ void setup()
     SD.begin(10);
 
     arq = SD.open("texto.txt", FILE_WRITE);
-  
+
     lcd.setCursor(0, 0); // posicionamento primeira linha
 
     if(arq) {
@@ -157,7 +139,7 @@ void setup()
 void loop()
 {
   //if(DEBUG_TEMPO)     //Debug usado para descobrir o tempo de utilizacao de processamento do programa
-    time1 = millis();
+  time1 = millis();
 
   /* Primeiro passo */
   ler_sensor();
@@ -235,10 +217,10 @@ void menu_iniciar(void) // função que lança no display o que o sensor esta ca
       arq.print("     "); // posicionamento primeira linha
     }
   }
-    if(DEBUG_SERIAL) 
-      Serial.println("");
-    if(MICROSD)
-      arq.println("");
+  if(DEBUG_SERIAL) 
+    Serial.println("");
+  if(MICROSD)
+    arq.println("");
   for(int i = 0; i < NUM_SENSOR; i++)
   {
     lcd.setCursor(i*4, 1); // posicionamento primeira linha
@@ -272,7 +254,7 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
 
   for(i = 0; i< NUM_SENSOR ; i++)
     soma[i] = 0;
- //Ler junto  os sensores e somar
+  //Ler junto  os sensores e somar
   for(i = 0; i< NUM_INTERACAO ; i++)    //permitindo assim uma maior percisao do dado recebido
     for(j = 0; j< NUM_SENSOR ; j++)
       if(ep.sensor_chave[j])
@@ -294,7 +276,7 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
     Serial.print(sensor_max[i]);
     Serial.print("   ");
     Serial.println((((1000*j-1000*sensor_min[i])/(sensor_max[i] - sensor_min[i]))));
-    
+
   }
 
   return;
@@ -378,36 +360,11 @@ void calibra(void)
     if(sensor_max[sens] < maior)
       sensor_max[sens] = maior;
     Serial.println("passo2");
-/*
-    soma=0;
-    
-    for(j=0;j <1000;j++)
-    {
-      soma+=analogRead(sensor_porta[sens]);
-      Serial.println(analogRead(sensor_porta[sens]));
-      delay(1);
-    }
-Serial.println("passo3");
-    //med=soma/1000;
-Serial.println(soma);
-Serial.println(med);
-    if(med > sensor_max[sens])
-    {
-      sensor_max[sens] = med;
-                   Serial.println(sensor_max[sens]);
-               Serial.println(i);
-      
-    }
-    */
     Serial.println("passo4");
 
     for(i=0;i<4;i++)
       if(i!=sens)
-      {/*
-        soma=0;
-        for(j=0; j<1000; j++)
-          soma = analogRead(sensor_porta[i]);
-        med = soma/1000;*/
+      {
         Serial.println("passo5");
         if(sensor_sinal[i] < sensor_min[i])
         {
@@ -504,7 +461,7 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
     digitalWrite(LAMPADA, HIGH);
   else
     digitalWrite(LAMPADA, LOW);
-  
+
   lcd.clear();
   lcd.setCursor(12, 1);
   lcd.print(media_total);
@@ -586,30 +543,7 @@ void conf_padrao(void)//carrega a parte inicial do eeprom(endereco 0) com a stru
 
   EEPROM.put(0, ep);
 }
-/*
-void conf_padrao_def(void)//carrega a parte do eeprom(endereco 512) com a struct das informacoes dos define's
-{                     //modifica todas as configuracoes para "configuracoes de fabrica"
-  t_define def;
 
-  def.debug_serial            = DEBUG_SERIAL            ;
-  def.debug_tempo             = DEBUG_TEMPO             ;
-  def.microsd                 = MICROSD                 ;
-  def.zerar                   = ZERAR                   ;
-  def.porcent                 = PORCENT                 ;
-  def.delay_histerese         = DELAY_HISTERESE         ;
-  def.delay_botao             = DELAY_BOTAO             ;
-  def.delay_inicial           = DELAY_INICIAL           ;
-  def.tamanho_vetor           = TAMANHO_VETOR           ;
-  def.tolerancia_potenciometro= TOLERANCIA_POTENCIOMETRO;
-  def.num_sensor              = NUM_SENSOR              ;
-  def.num_interacao           = NUM_INTERACAO           ;
-  def.nivel_limite            = NIVEL_LIMITE            ;
-  def.tempo_sirene            = TEMPO_SIRENE            ;
-  def.tempo_processamento     = TEMPO_PROCESSAMENTO     ;
-
-  EEPROM.put(512, def);
-}
-*/
 void mod_tolerancia(char c) //modificar_tolerancia [funcao auxiliar eeprom]
 {
   t_eeprom ep;
@@ -652,9 +586,9 @@ void mod_pot_ideal(int pot, char botao) //modificar_potenciometro_ideal [funcao 
 void verificar_intervalo(void)//verifica se o sensor esta conectado atravez de uma analise de intervalo
 {                             //e posteriormente verifica se o potenciometro esta dentro do intevalo desejado
   t_eeprom ep;                //caso algum desses nao esteja correto, ele nao permite que a leitura desse sensor  
-                              //entre na media da sala
+  //entre na media da sala
   EEPROM.get(0, ep);
-  
+
   intervalo_pot(ep);
 
   pulldown(ep);
@@ -693,7 +627,7 @@ void pulldown(t_eeprom ep)
         sinal_maior = sensor_sinal[i];
         i_maior = i;
       }
-  
+
   for(i=0; i<NUM_SENSOR; i++)
     if(ep.sensor_chave[i])
       if(sensor_sinal[i]<=20 || sensor_sinal[i]>950)
