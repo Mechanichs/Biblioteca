@@ -26,7 +26,7 @@
 #define PORCENT           0.2        // Define a porcentagem de medicoes mais baixas despresadas na media_vetor().
 #define PORCENT2           0.00        // Define a porcentagem de medicoes mais altas despresadas na media_vetor().
 #define TEMPO_PROCESSAMENTO 320
-#define TEMPO_CALIBRAGEM  40         //tempo dado em segundos
+#define TEMPO_CALIBRAGEM  22         //tempo dado em segundos
 
 /*
 ####   EPROM   ####
@@ -286,7 +286,15 @@ void ler_sensor(void) // sinal irá receber porta, para o sensor e o potenciomet
       x += analogRead(potenciometro_porta[i]);    //segundo verifiquei, o potenciometro so esta no codigo para ser impresso
     potenciometro_sinal[i] = x/j;
     j = soma[i]/NUM_INTERACAO;
-    sensor_sinal[i] = (1000*(((j-sensor_min[i])/(sensor_max[i] - sensor_min[i]))));
+    sensor_sinal[i] = ((((1000*j-1000*sensor_min[i])/(sensor_max[i] - sensor_min[i]))));
+    Serial.print(j);
+    Serial.print("   ");
+    Serial.print(sensor_min[i]);
+    Serial.print("   ");
+    Serial.print(sensor_max[i]);
+    Serial.print("   ");
+    Serial.println((((1000*j-1000*sensor_min[i])/(sensor_max[i] - sensor_min[i]))));
+    
   }
 
   return;
@@ -367,7 +375,8 @@ void calibra(void)
         sens=i;
       }
     }
-    sensor_max[sens] = maior;
+    if(sensor_max[sens] < maior)
+      sensor_max[sens] = maior;
     Serial.println("passo2");
 /*
     soma=0;
@@ -737,5 +746,6 @@ void desligar_menor(t_eeprom ep)
       sensor_status[escolha]=false;
   }
 }
+
 
 
