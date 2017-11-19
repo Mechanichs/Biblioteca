@@ -155,9 +155,13 @@ void loop()
   {
     for(int k; k<NUM_SENSOR; k++)
     {
-      Serial.println("MAX:");
-      Serial.println(sensor_max[k]);
-      Serial.println("MIN:");
+      Serial.print("Inter ");
+      Serial.print(k);
+      Serial.print(" -> ");
+      Serial.print("MAX: ");
+      Serial.print(sensor_max[k]);
+      Serial.print("  ");
+      Serial.print("MIN: ");
       Serial.println(sensor_min[k]);
     }
   }
@@ -345,8 +349,8 @@ void calibra(void)
     Serial.println(millis());
     Serial.println(tempo_inicial);
     Serial.println(millis() - tempo_inicial);
-    ler_sinal();
     Serial.println("passo1");
+    ler_sinal();
     maior = 0;
     menor = 1023;
     for(i=0;i<4;i++)
@@ -359,22 +363,21 @@ void calibra(void)
     }
     if(sensor_max[sens] < maior)
       sensor_max[sens] = maior;
+    
     Serial.println("passo2");
-    Serial.println("passo4");
-
+    
     for(i=0;i<4;i++)
       if(i!=sens)
       {
-        Serial.println("passo5");
+        Serial.println("passo3");
         if(sensor_sinal[i] < sensor_min[i])
         {
           sensor_min[i] = sensor_sinal[i];
           Serial.println(sensor_min[i]);
           Serial.println(i);
         }
-        Serial.println("passo6");
       }
-    Serial.println("PASSO7");
+    Serial.println("PASSO4");
   }
   Serial.println("SAAAAAAIIIIIIIIUUUUUUUUUU");
   return;
