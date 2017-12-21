@@ -21,8 +21,8 @@
 #define LED               10         
 #define SIRENE            11         // Sinalizador luminoso ligado à porta digital do arduino. ~ PORTA DA SIRENE
 #define LAMPADA           12       
-#define NIVEL_LIMITE      75        // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
-#define TEMPO_SIRENE      7          // Define o tempo de duração em que o sinalizador permanecerá ativo. 
+#define NIVEL_LIMITE      75         // Determina nível de ruído/pulsos para ativar a sirene. ~ NIVEL_LIMITE DO AMBIENTE
+#define TEMPO_SIRENE      4.5        // Define o tempo de duração em que o sinalizador permanecerá ativo. 
 #define PORCENT           0.2        // Define a porcentagem de medicoes mais baixas despresadas na media_vetor().
 #define PORCENT2           0.00        // Define a porcentagem de medicoes mais altas despresadas na media_vetor().
 #define TEMPO_PROCESSAMENTO 320
@@ -330,7 +330,7 @@ bool analisar_barulho(void) // decide se vai acionar ou nao...
     arq.println(media_vetor());
   }
 
-  if(media_total >= 160)
+  if(media_total >= 71)
     digitalWrite(LAMPADA, HIGH);
   else
     digitalWrite(LAMPADA, LOW);
@@ -553,5 +553,4 @@ void desligar_menor(t_eeprom ep)
       sensor_status[escolha]=false;
   }
 }
-
 
